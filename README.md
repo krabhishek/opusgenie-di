@@ -346,26 +346,39 @@ class ServiceWithProtocol(BaseComponent):
 
 ## Development and Contributing
 
-### Setup Development Environment
+### Quick Setup
 
 ```bash
 git clone <repository-url>
 cd opusgenie-di
-pip install -e ".[dev]"
+./scripts/setup-dev.sh
 ```
 
-### Code Quality
+### Development Workflow
 
 ```bash
-# Format code
-ruff format .
+# Quick development checks
+make dev
 
-# Lint code
-ruff check .
+# Full CI checks (emulates GitHub Actions locally)
+make ci-check
 
-# Type check
-mypy opusgenie_di/
+# Individual commands
+make format      # Format code with ruff
+make lint        # Lint code with ruff  
+make typecheck   # Type check with mypy
+make examples    # Run example scripts
+make build       # Build package
 ```
+
+### Pre-Push Validation
+
+**Always run before pushing:**
+```bash
+make ci-check
+```
+
+This emulates the exact GitHub Actions workflow locally and catches issues before they reach CI.
 
 ### Running Tests
 

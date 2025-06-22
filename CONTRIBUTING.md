@@ -142,8 +142,16 @@ test: add unit tests for container implementation
 
 ### Before Submitting
 
+**CRITICAL: Always run the local CI check before pushing:**
+```bash
+make ci-check
+```
+
+This emulates the exact GitHub Actions workflow locally and prevents CI failures.
+
+Checklist:
 - [ ] Code follows project style guidelines
-- [ ] All quality checks pass locally
+- [ ] Local CI check passes (`make ci-check`)
 - [ ] Examples still work correctly
 - [ ] Documentation updated (if needed)
 - [ ] Commit messages follow conventional format
