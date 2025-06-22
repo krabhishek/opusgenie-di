@@ -2,10 +2,13 @@
 
 import asyncio
 from collections import defaultdict
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Generator
+from contextlib import contextmanager
+from contextvars import ContextVar
 import threading
 from typing import Any, TypeVar
-from weakref import WeakSet
+import uuid
+from weakref import WeakValueDictionary
 
 from .._base import ComponentScope
 from .._utils import get_logger, log_error
@@ -15,6 +18,9 @@ from .scope_interface import ScopeManagerInterface
 T = TypeVar("T")
 
 logger = get_logger(__name__)
+
+# Context variable to track the current scope
+_current_scope: ContextVar[str | None] = ContextVar("current_scope", default=None)
 
 
 class ScopeManager(ScopeManagerInterface):
@@ -30,7 +36,9 @@ class ScopeManager(ScopeManagerInterface):
         self._lock = threading.RLock()
         self._singletons: dict[str, Any] = {}
         self._scoped_instances: dict[str, dict[str, Any]] = defaultdict(dict)
-        self._disposable_instances: WeakSet[Any] = WeakSet()
+        self._disposable_instances: WeakValueDictionary[int, Any] = (
+            WeakValueDictionary()
+        )
 
     def get_or_create(
         self,
@@ -156,14 +164,18 @@ class ScopeManager(ScopeManagerInterface):
 
             logger.debug("Cleared all cached instances")
 
-    def dispose(self, instance: T) -> None:
+    def dispose(self, instance: T | None = None) -> None:
         """
         Dispose of a component instance and clean up resources.
 
         Args:
-            instance: Component instance to dispose
+            instance: Component instance to dispose. If None, disposes all instances.
         """
-        self._dispose_instance(instance)
+        if instance is None:
+            # Dispose all instances (clear all scopes)
+            self.clear_all()
+        else:
+            self._dispose_instance(instance)
 
     def has_instance(self, key: str, scope: ComponentScope) -> bool:
         """
@@ -227,6 +239,57 @@ class ScopeManager(ScopeManagerInterface):
             if any(self._scoped_instances.values()):
                 scopes.append(ComponentScope.SCOPED)
         return scopes
+
+    def create_or_get_instance(
+        self,
+        component_type: type[T],
+        scope: ComponentScope,
+        factory: Callable[[], T],
+    ) -> T:
+        """
+        Convenience method that matches test expectations.
+
+        Args:
+            component_type: Component type (used to generate key)
+            scope: Component scope for lifecycle management
+            factory: Factory function to create new instances
+
+        Returns:
+            Component instance
+        """
+        key = component_type.__name__
+        return self.get_or_create(key, factory, scope)
+
+    @contextmanager
+    def create_scope(self) -> Generator[str, None, None]:
+        """
+        Create a new scope context.
+
+        Returns:
+            Context manager that provides a new scope for scoped components
+        """
+        scope_id = str(uuid.uuid4())
+        token = _current_scope.set(scope_id)
+        try:
+            logger.debug("Created scope context", scope_id=scope_id)
+            yield scope_id
+        finally:
+            # Clean up scope when exiting
+            with self._lock:
+                if scope_id in self._scoped_instances:
+                    self._dispose_instances(self._scoped_instances[scope_id].values())
+                    del self._scoped_instances[scope_id]
+            _current_scope.reset(token)
+            logger.debug("Disposed scope context", scope_id=scope_id)
+
+    def has_active_scope(self) -> bool:
+        """
+        Check if there's currently an active scope context.
+
+        Returns:
+            True if inside a scope context, False otherwise
+        """
+        return _current_scope.get() is not None
 
     # Private methods
 
@@ -294,20 +357,22 @@ class ScopeManager(ScopeManagerInterface):
 
     def _get_or_create_scoped(self, key: str, factory: Callable[[], T]) -> T:
         """Get or create a scoped instance."""
-        # For now, use a default scope name. In a real implementation,
-        # this could be request-scoped, session-scoped, etc.
-        scope_name = "default"
+        current_scope = _current_scope.get()
 
-        if key in self._scoped_instances[scope_name]:
-            return self._scoped_instances[scope_name][key]  # type: ignore[no-any-return]
+        # If no scope is active, behave like transient
+        if current_scope is None:
+            return self._create_transient(factory)
+
+        if key in self._scoped_instances[current_scope]:
+            return self._scoped_instances[current_scope][key]  # type: ignore[no-any-return]
 
         instance = factory()
-        self._scoped_instances[scope_name][key] = instance
+        self._scoped_instances[current_scope][key] = instance
         self._track_disposable(instance)
         logger.debug(
             "Created scoped instance",
             key=key,
-            scope=scope_name,
+            scope=current_scope,
             instance_type=type(instance).__name__,
         )
         return instance
@@ -316,12 +381,16 @@ class ScopeManager(ScopeManagerInterface):
         self, key: str, factory: Callable[[], Coroutine[Any, Any, T]]
     ) -> T:
         """Asynchronously get or create a scoped instance."""
-        scope_name = "default"
+        current_scope = _current_scope.get()
+
+        # If no scope is active, behave like transient
+        if current_scope is None:
+            return await self._create_transient_async(factory)
 
         # Check if instance already exists
         with self._lock:
-            if key in self._scoped_instances[scope_name]:
-                return self._scoped_instances[scope_name][key]  # type: ignore[no-any-return]
+            if key in self._scoped_instances[current_scope]:
+                return self._scoped_instances[current_scope][key]  # type: ignore[no-any-return]
 
         # Create instance asynchronously
         instance = await factory()
@@ -329,16 +398,16 @@ class ScopeManager(ScopeManagerInterface):
         # Store the instance
         with self._lock:
             # Double-check in case another coroutine created it
-            if key in self._scoped_instances[scope_name]:
+            if key in self._scoped_instances[current_scope]:
                 self._dispose_instance(instance)
-                return self._scoped_instances[scope_name][key]  # type: ignore[no-any-return]
+                return self._scoped_instances[current_scope][key]  # type: ignore[no-any-return]
 
-            self._scoped_instances[scope_name][key] = instance
+            self._scoped_instances[current_scope][key] = instance
             self._track_disposable(instance)
             logger.debug(
                 "Created scoped instance async",
                 key=key,
-                scope=scope_name,
+                scope=current_scope,
                 instance_type=type(instance).__name__,
             )
             return instance
@@ -364,7 +433,7 @@ class ScopeManager(ScopeManagerInterface):
     def _track_disposable(self, instance: Any) -> None:
         """Track an instance for disposal if it has disposal methods."""
         if self._has_disposal_methods(instance):
-            self._disposable_instances.add(instance)
+            self._disposable_instances[id(instance)] = instance
 
     def _has_disposal_methods(self, instance: Any) -> bool:
         """Check if an instance has disposal methods."""

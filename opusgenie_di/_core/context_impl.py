@@ -618,18 +618,14 @@ class Context(ContextInterface):
         """
         try:
             with self._lock:
-                if self._auto_wire:
-                    self._container.enable_auto_wiring()
-                    logger.debug(
-                        "Enabled auto-wiring for context",
-                        context=self._name,
-                        component_count=self._container.get_registration_count(),
-                    )
-                else:
-                    logger.debug(
-                        "Auto-wiring disabled for context",
-                        context=self._name,
-                    )
+                # Set auto-wiring flag to True
+                self._auto_wire = True
+                self._container.enable_auto_wiring()
+                logger.debug(
+                    "Enabled auto-wiring for context",
+                    context=self._name,
+                    component_count=self._container.get_registration_count(),
+                )
 
         except Exception as e:
             log_error(

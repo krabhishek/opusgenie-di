@@ -2,7 +2,7 @@
 
 import inspect
 import types
-from typing import Any, Union, get_args, get_origin
+from typing import Any, Union, get_args, get_origin, get_type_hints
 
 from .logging import get_logger
 
@@ -65,12 +65,37 @@ def get_constructor_dependencies(cls: type) -> dict[str, tuple[type | None, bool
         signature = inspect.signature(cls)
         dependencies = {}
 
+        # Get resolved type hints to handle forward references
+        try:
+            # Get the module where the class is defined and get type hints from __init__ method
+            if hasattr(cls, "__module__") and hasattr(cls, "__init__"):
+                import sys
+
+                module = sys.modules.get(cls.__module__)
+                if module:
+                    module_globals = getattr(module, "__dict__", {})
+                    # Get type hints from the __init__ method, not the class
+                    type_hints = get_type_hints(cls.__init__, globalns=module_globals)
+                else:
+                    type_hints = get_type_hints(cls.__init__)
+            else:
+                type_hints = (
+                    get_type_hints(cls.__init__) if hasattr(cls, "__init__") else {}
+                )
+        except (NameError, AttributeError, TypeError) as e:
+            logger.debug(
+                "Failed to resolve type hints, falling back to raw annotations",
+                class_name=cls.__name__,
+                error=str(e),
+            )
+            type_hints = {}
+
         for param_name, param in signature.parameters.items():
             if param_name == "self":
                 continue
 
-            # Get the type annotation
-            type_hint = param.annotation
+            # Get the type annotation - prefer resolved type hints over raw annotations
+            type_hint = type_hints.get(param_name, param.annotation)
             if type_hint == inspect.Parameter.empty:
                 # No type annotation, skip
                 logger.debug(
@@ -89,6 +114,14 @@ def get_constructor_dependencies(cls: type) -> dict[str, tuple[type | None, bool
             primary_type = get_primary_type(type_hint)
 
             dependencies[param_name] = (primary_type, is_optional)
+
+            logger.debug(
+                "Resolved dependency",
+                class_name=cls.__name__,
+                parameter=param_name,
+                resolved_type=primary_type.__name__ if primary_type else None,
+                is_optional=is_optional,
+            )
 
         return dependencies
 

@@ -144,6 +144,7 @@ OpusGenie DI provides robust automatic dependency injection based on constructor
 - **Type-Safe**: Uses Python type hints for dependency resolution
 - **Cross-Context**: Automatically resolves dependencies from imported contexts
 - **Error Handling**: Clear error messages for missing or circular dependencies
+- **Circular Dependency Detection**: Runtime detection of circular dependencies with detailed error reporting
 - **Optional Dependencies**: Support for optional dependencies with type unions
 
 ### Example: Simple Auto-Wiring
@@ -205,6 +206,79 @@ class ServiceWithOptionalDependency(BaseComponent):
         super().__init__()
         self.required_service = required_service
         self.optional_service = optional_service  # Will be None if not available
+```
+
+### Circular Dependency Detection
+
+OpusGenie DI provides runtime circular dependency detection to prevent infinite loops during component resolution. When a circular dependency is detected, a `CircularDependencyError` is raised with detailed information about the dependency chain.
+
+#### How It Works
+
+The framework tracks the component resolution chain using thread-local storage. When a component is being resolved, it checks if that component is already in the current resolution chain, indicating a circular dependency.
+
+#### Example: Detecting Circular Dependencies
+
+```python
+from opusgenie_di import og_component, BaseComponent, ComponentScope, Context, CircularDependencyError
+
+@og_component(scope=ComponentScope.SINGLETON, auto_register=False)
+class ServiceA(BaseComponent):
+    def __init__(self, service_b: "ServiceB") -> None:  # Forward reference
+        super().__init__()
+        self.service_b = service_b
+
+@og_component(scope=ComponentScope.SINGLETON, auto_register=False)
+class ServiceB(BaseComponent):
+    def __init__(self, service_a: ServiceA) -> None:
+        super().__init__()
+        self.service_a = service_a
+
+# Register components
+context = Context("example_context")
+context.register_component(ServiceA, scope=ComponentScope.SINGLETON)
+context.register_component(ServiceB, scope=ComponentScope.SINGLETON)
+context.enable_auto_wiring()
+
+# This will detect the circular dependency
+try:
+    service_a = context.resolve(ServiceA)
+except CircularDependencyError as e:
+    print(f"Circular dependency detected: {e.message}")
+    print(f"Dependency chain: {' -> '.join(e.dependency_chain)}")
+    # Output: Dependency chain: ServiceA -> ServiceB -> ServiceA
+```
+
+#### Key Benefits
+
+- **Runtime Detection**: Circular dependencies are detected when components are actually resolved, not at registration time
+- **Clear Error Messages**: The error includes the complete dependency chain showing exactly where the cycle occurs
+- **Forward Reference Support**: Works with forward references in type hints (e.g., `"ServiceB"`)
+- **Thread-Safe**: Uses thread-local storage to track resolution chains, making it safe for concurrent use
+- **Zero Performance Impact**: No overhead when no circular dependencies exist
+
+#### Best Practices
+
+While the framework detects circular dependencies, it's better to design your architecture to avoid them:
+
+```python
+# Instead of circular dependencies, use a shared dependency
+@og_component()
+class SharedConfig(BaseComponent):
+    def __init__(self) -> None:
+        super().__init__()
+        self.setting = "shared_value"
+
+@og_component()
+class ServiceA(BaseComponent):
+    def __init__(self, config: SharedConfig) -> None:
+        super().__init__()
+        self.config = config
+
+@og_component()
+class ServiceB(BaseComponent):
+    def __init__(self, config: SharedConfig) -> None:
+        super().__init__()
+        self.config = config
 ```
 
 ## Component Scopes

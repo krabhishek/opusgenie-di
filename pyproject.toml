@@ -1,6 +1,6 @@
 [project]
 name = "opusgenie-di"
-version = "0.1.3"
+version = "0.1.4"
 description = "A powerful, multi-context dependency injection framework for Python"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -81,6 +81,9 @@ exclude = [
     "examples/",
     "tests/",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [tool.ruff]
 exclude = [

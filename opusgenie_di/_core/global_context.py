@@ -236,9 +236,14 @@ def reset_global_context() -> None:
     """
     global _global_context
 
-    if _global_context is not None:
-        _global_context.reset()
-        logger.info("Reset global dependency injection context")
+    with _global_context_lock:
+        if _global_context is not None:
+            _global_context.reset()
+            # Set to None to mark as uninitialized
+            _global_context = None
+            # Also reset the class-level singleton instance
+            GlobalContext._instance = None
+            logger.info("Reset global dependency injection context")
 
 
 def get_global_context_summary() -> dict[str, Any]:

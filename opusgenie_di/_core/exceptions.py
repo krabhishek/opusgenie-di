@@ -25,6 +25,10 @@ class DIError(Exception):
         self.operation = operation
 
     def __str__(self) -> str:
+        # For simple cases, just return the message
+        if not self.context_name and not self.operation and not self.details:
+            return self.message
+
         parts = [self.message]
         if self.context_name:
             parts.append(f"Context: {self.context_name}")
@@ -54,7 +58,7 @@ class ContextError(DIError):
     """Base exception for context-related errors."""
 
 
-class ComponentRegistrationError(DIError):
+class ComponentRegistrationError(ContextError):
     """Exception for component registration errors."""
 
     def __init__(
@@ -65,12 +69,12 @@ class ComponentRegistrationError(DIError):
         details: str | None = None,
         context_name: str | None = None,
     ) -> None:
-        super().__init__(message, details, context_name, "component_registration")
+        super().__init__(message, details, context_name)
         self.component_type = component_type
         self.interface_type = interface_type
 
 
-class ComponentResolutionError(DIError):
+class ComponentResolutionError(ContextError):
     """Exception for component resolution errors."""
 
     def __init__(
@@ -81,7 +85,7 @@ class ComponentResolutionError(DIError):
         context_name: str | None = None,
         resolution_chain: list[str] | None = None,
     ) -> None:
-        super().__init__(message, details, context_name, "component_resolution")
+        super().__init__(message, details, context_name)
         self.component_type = component_type
         self.resolution_chain = resolution_chain or []
 
@@ -92,12 +96,18 @@ class CircularDependencyError(ComponentResolutionError):
     def __init__(
         self,
         message: str,
-        dependency_chain: list[str],
+        dependency_chain: list[str] | None = None,
         context_name: str | None = None,
     ) -> None:
+        dependency_chain = dependency_chain or []
+        details = (
+            f"Dependency chain: {' -> '.join(dependency_chain)}"
+            if dependency_chain
+            else None
+        )
         super().__init__(
             message,
-            details=f"Dependency chain: {' -> '.join(dependency_chain)}",
+            details=details,
             context_name=context_name,
             resolution_chain=dependency_chain,
         )
@@ -115,12 +125,12 @@ class ScopeError(DIError):
         details: str | None = None,
         context_name: str | None = None,
     ) -> None:
-        super().__init__(message, details, context_name, "scope_management")
+        super().__init__(message, details, context_name)
         self.scope = scope
         self.component_type = component_type
 
 
-class ProviderError(DIError):
+class ProviderError(ContainerError):
     """Exception for provider-related errors."""
 
     def __init__(
@@ -131,7 +141,7 @@ class ProviderError(DIError):
         details: str | None = None,
         context_name: str | None = None,
     ) -> None:
-        super().__init__(message, details, context_name, "provider_operation")
+        super().__init__(message, details=details, context_name=context_name)
         self.provider_name = provider_name
         self.component_type = component_type
 
@@ -147,7 +157,7 @@ class ImportError(DIError):
         target_context: str | None = None,
         details: str | None = None,
     ) -> None:
-        super().__init__(message, details, target_context, "import_resolution")
+        super().__init__(message, details, target_context)
         self.component_type = component_type
         self.source_context = source_context
         self.target_context = target_context
@@ -162,11 +172,8 @@ class ModuleError(DIError):
         module_name: str | None = None,
         details: str | None = None,
         context_name: str | None = None,
-        operation: str | None = None,
     ) -> None:
-        super().__init__(
-            message, details, context_name, operation or "module_operation"
-        )
+        super().__init__(message, details, context_name)
         self.module_name = module_name
 
 
@@ -181,7 +188,7 @@ class LifecycleError(DIError):
         details: str | None = None,
         context_name: str | None = None,
     ) -> None:
-        super().__init__(message, details, context_name, "lifecycle_management")
+        super().__init__(message, details, context_name)
         self.component_type = component_type
         self.lifecycle_stage = lifecycle_stage
 
@@ -196,7 +203,7 @@ class ValidationError(DIError):
         details: str | None = None,
         context_name: str | None = None,
     ) -> None:
-        super().__init__(message, details, context_name, "validation")
+        super().__init__(message, details, context_name)
         self.validation_rule = validation_rule
 
 
@@ -211,7 +218,7 @@ class ConfigurationError(DIError):
         details: str | None = None,
         context_name: str | None = None,
     ) -> None:
-        super().__init__(message, details, context_name, "configuration")
+        super().__init__(message, details, context_name)
         self.config_key = config_key
         self.config_value = config_value
 

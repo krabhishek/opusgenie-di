@@ -1,5 +1,6 @@
 """Container implementation wrapping dependency-injector."""
 
+import threading
 from threading import RLock
 import time
 from typing import Any, TypeVar, cast
@@ -17,7 +18,11 @@ from .._utils import (
     validate_component_registration,
 )
 from .container_interface import ContainerInterface
-from .exceptions import ComponentRegistrationError, ComponentResolutionError
+from .exceptions import (
+    CircularDependencyError,
+    ComponentRegistrationError,
+    ComponentResolutionError,
+)
 from .scope_impl import ScopeManager
 
 T = TypeVar("T")
@@ -25,6 +30,42 @@ TInterface = TypeVar("TInterface")
 TImplementation = TypeVar("TImplementation")
 
 logger = get_logger(__name__)
+
+# Thread-local storage for tracking resolution chains to detect circular dependencies
+_resolution_chain = threading.local()
+
+
+def _get_resolution_chain() -> list[str]:
+    """Get the current resolution chain for this thread."""
+    if not hasattr(_resolution_chain, "chain"):
+        _resolution_chain.chain = []
+    return _resolution_chain.chain
+
+
+def _push_resolution(component_name: str) -> None:
+    """Add a component to the resolution chain."""
+    chain = _get_resolution_chain()
+    chain.append(component_name)
+
+
+def _pop_resolution() -> None:
+    """Remove the last component from the resolution chain."""
+    chain = _get_resolution_chain()
+    if chain:
+        chain.pop()
+
+
+def _check_circular_dependency(component_name: str, context_name: str) -> None:
+    """Check if adding this component would create a circular dependency."""
+    chain = _get_resolution_chain()
+    if component_name in chain:
+        # Found circular dependency
+        circular_chain = chain + [component_name]
+        raise CircularDependencyError(
+            f"Circular dependency detected for component '{component_name}'",
+            dependency_chain=circular_chain,
+            context_name=context_name,
+        )
 
 
 class Container(ContainerInterface[T]):
@@ -265,6 +306,12 @@ class Container(ContainerInterface[T]):
         start_time = time.time()
         provider_name = name or interface.__name__
 
+        # Check for circular dependencies before starting resolution
+        _check_circular_dependency(provider_name, self._name)
+
+        # Add to resolution chain
+        _push_resolution(provider_name)
+
         try:
             with self._lock:
                 # Check if provider exists
@@ -291,7 +338,7 @@ class Container(ContainerInterface[T]):
 
                 return instance  # type: ignore[no-any-return]
 
-        except ComponentResolutionError:
+        except (ComponentResolutionError, CircularDependencyError):
             raise
         except Exception as e:
             log_error(
@@ -305,6 +352,9 @@ class Container(ContainerInterface[T]):
                 component_type=interface.__name__,
                 details=str(e),
             ) from e
+        finally:
+            # Always remove from resolution chain when done
+            _pop_resolution()
 
     async def resolve_async(
         self, interface: type[TInterface], name: str | None = None
@@ -604,37 +654,51 @@ class Container(ContainerInterface[T]):
 
         def create_instance_with_dependencies() -> Any:
             kwargs = {}
-            for param_name, (param_type, is_optional) in dependencies.items():
-                if param_type and self._should_inject_dependency(param_type):
-                    try:
-                        # Resolve dependency from context (includes imports)
-                        kwargs[param_name] = self._context_ref.resolve(param_type)
-                        logger.debug(
-                            "Auto-injected dependency",
-                            component=impl_class.__name__,
-                            parameter=param_name,
-                            dependency_type=param_type.__name__,
-                        )
-                    except Exception as e:
-                        if not is_optional:
-                            logger.error(
-                                "Failed to resolve required dependency",
+
+            # Check if auto-wiring is enabled in the context
+            auto_wire_enabled = (
+                getattr(self._context_ref, "_auto_wire", True)
+                if self._context_ref
+                else True
+            )
+
+            if auto_wire_enabled:
+                for param_name, (param_type, is_optional) in dependencies.items():
+                    if param_type and self._should_inject_dependency(param_type):
+                        try:
+                            # Resolve dependency from context (includes imports)
+                            # The context's resolve method will handle circular dependency detection
+                            kwargs[param_name] = self._context_ref.resolve(param_type)
+                            logger.debug(
+                                "Auto-injected dependency",
+                                component=impl_class.__name__,
+                                parameter=param_name,
+                                dependency_type=param_type.__name__,
+                            )
+                        except (CircularDependencyError, ComponentResolutionError):
+                            # Re-raise DI-specific exceptions without modification
+                            raise
+                        except Exception as e:
+                            if not is_optional:
+                                logger.error(
+                                    "Failed to resolve required dependency",
+                                    component=impl_class.__name__,
+                                    dependency=param_type.__name__,
+                                    error=str(e),
+                                )
+                                raise
+                            logger.debug(
+                                "Failed to resolve optional dependency, skipping",
                                 component=impl_class.__name__,
                                 dependency=param_type.__name__,
                                 error=str(e),
                             )
-                            raise
-                        logger.debug(
-                            "Failed to resolve optional dependency, skipping",
-                            component=impl_class.__name__,
-                            dependency=param_type.__name__,
-                            error=str(e),
-                        )
 
             logger.debug(
                 "Creating instance with auto-injected dependencies",
                 component=impl_class.__name__,
                 injected_dependencies=list(kwargs.keys()),
+                auto_wire_enabled=auto_wire_enabled,
             )
             return impl_class(**kwargs)
 

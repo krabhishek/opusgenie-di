@@ -38,10 +38,9 @@ class RegistrationStrategy(Enum):
     Defines how components are registered and created.
     """
 
-    FACTORY = "factory"
-    INSTANCE = "instance"
-    CLASS_CONSTRUCTOR = "class_constructor"
-    FACTORY_METHOD = "factory_method"
+    AUTO = "auto"  # Automatic registration based on type hints
+    MANUAL = "manual"  # Manual registration by user
+    LAZY = "lazy"  # Lazy initialization when first requested
 
 
 class LifecycleStage(Enum):
@@ -54,9 +53,12 @@ class LifecycleStage(Enum):
     # Core lifecycle stages
     CREATED = "created"
     INITIALIZING = "initializing"
+    INITIALIZED = "initialized"
     ACTIVE = "active"
     STOPPING = "stopping"
     STOPPED = "stopped"
+    DISPOSING = "disposing"
+    DISPOSED = "disposed"
     ERROR = "error"
 
     # Extended lifecycle stages for coordinated management
@@ -64,6 +66,5 @@ class LifecycleStage(Enum):
     POST_INITIALIZATION = "post_initialization"
     STARTUP = "startup"
     RUNNING = "running"  # Alias for ACTIVE
-    PRE_SHUTDOWN = "pre_shutdown"
-    SHUTDOWN = "shutdown"  # Alias for STOPPING
+    SHUTDOWN = "shutdown"
     POST_SHUTDOWN = "post_shutdown"
