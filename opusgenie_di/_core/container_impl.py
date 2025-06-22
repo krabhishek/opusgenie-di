@@ -102,7 +102,11 @@ class Container(ContainerInterface[T]):
                         )
 
                 # Create appropriate dependency-injector provider based on scope
-                provider: providers.Singleton[Any] | providers.Factory[Any] | providers.Resource[Any]
+                provider: (
+                    providers.Singleton[Any]
+                    | providers.Factory[Any]
+                    | providers.Resource[Any]
+                )
 
                 if scope == ComponentScope.SINGLETON:
                     if factory:
@@ -147,7 +151,9 @@ class Container(ContainerInterface[T]):
                 )
 
                 self._component_metadata[provider_name] = metadata
-                self._registered_types[provider_name] = interface  # Track the actual type
+                self._registered_types[provider_name] = (
+                    interface  # Track the actual type
+                )
                 self._registration_count += 1
 
                 log_component_registration(
@@ -197,7 +203,9 @@ class Container(ContainerInterface[T]):
                 provider_name = name or interface.__name__
 
                 # Wrap the provider in a dependency-injector factory
-                di_provider: providers.Factory[Any] = providers.Factory(provider.provide)
+                di_provider: providers.Factory[Any] = providers.Factory(
+                    provider.provide
+                )
                 self._container.set_provider(provider_name, di_provider)
 
                 # Create metadata
@@ -213,7 +221,9 @@ class Container(ContainerInterface[T]):
                 )
 
                 self._component_metadata[provider_name] = metadata
-                self._registered_types[provider_name] = interface  # Track the actual type
+                self._registered_types[provider_name] = (
+                    interface  # Track the actual type
+                )
                 self._registration_count += 1
 
                 log_component_registration(

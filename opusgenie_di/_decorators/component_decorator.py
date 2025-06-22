@@ -85,7 +85,15 @@ def og_component(
 
             # Add component metadata to the class
             cls._og_component_options = options
-            cls._og_component_metadata = create_metadata_dict(component_type=cls.__name__, scope=options.scope.value, layer=options.layer.value if options.layer else None, context_name=options.context_name, auto_register=options.auto_register, lazy_init=options.lazy_init, decorated_at=__name__)
+            cls._og_component_metadata = create_metadata_dict(
+                component_type=cls.__name__,
+                scope=options.scope.value,
+                layer=options.layer.value if options.layer else None,
+                context_name=options.context_name,
+                auto_register=options.auto_register,
+                lazy_init=options.lazy_init,
+                decorated_at=__name__,
+            )
             cls._og_enhanced_tags = enhanced_tags
 
             # Log decorator application

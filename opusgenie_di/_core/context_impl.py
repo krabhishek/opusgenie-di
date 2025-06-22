@@ -314,10 +314,10 @@ class Context(ContextInterface):
             factory: Optional factory function
         """
         # Extract parameters from kwargs with defaults
-        scope = kwargs.get('scope', ComponentScope.SINGLETON)
-        name = kwargs.get('name')
-        tags = kwargs.get('tags')
-        factory = kwargs.get('factory')
+        scope = kwargs.get("scope", ComponentScope.SINGLETON)
+        name = kwargs.get("name")
+        tags = kwargs.get("tags")
+        factory = kwargs.get("factory")
 
         try:
             with self._lock:
@@ -393,7 +393,9 @@ class Context(ContextInterface):
 
                 # Try to resolve from imports
                 try:
-                    import_instance: TInterface = self._import_manager.resolve_import(interface, name)
+                    import_instance: TInterface = self._import_manager.resolve_import(
+                        interface, name
+                    )
                     resolution_time_ms = (time.time() - start_time) * 1000
 
                     emit_event(
