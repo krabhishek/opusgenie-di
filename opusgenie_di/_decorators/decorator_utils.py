@@ -215,7 +215,7 @@ def create_metadata_dict(**kwargs: Any) -> dict[str, Any]:
     metadata = {}
     for key, value in kwargs.items():
         if value is not None:
-            if isinstance(value, (str, int, float, bool)):
+            if isinstance(value, str | int | float | bool):
                 metadata[key] = str(value)
             else:
                 metadata[key] = str(value)

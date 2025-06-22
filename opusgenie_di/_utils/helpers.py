@@ -35,7 +35,7 @@ def run_async_in_sync(coro: Any) -> Any:
     """
     try:
         # Try to get the current event loop
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
         # If we get here, there's already a running loop
         # We can't use asyncio.run(), so we need to create a new task
         import concurrent.futures

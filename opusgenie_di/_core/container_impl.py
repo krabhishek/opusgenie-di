@@ -53,6 +53,7 @@ class Container(ContainerInterface[T]):
 
         # Track metadata for registered components
         self._component_metadata: dict[str, ComponentMetadata] = {}
+        self._registered_types: dict[str, type] = {}  # Track actual type objects
         self._registration_count = 0
 
         logger.debug("Created container", container_name=name)
@@ -146,6 +147,7 @@ class Container(ContainerInterface[T]):
                 )
 
                 self._component_metadata[provider_name] = metadata
+                self._registered_types[provider_name] = interface  # Track the actual type
                 self._registration_count += 1
 
                 log_component_registration(
@@ -211,6 +213,7 @@ class Container(ContainerInterface[T]):
                 )
 
                 self._component_metadata[provider_name] = metadata
+                self._registered_types[provider_name] = interface  # Track the actual type
                 self._registration_count += 1
 
                 log_component_registration(
@@ -368,9 +371,11 @@ class Container(ContainerInterface[T]):
             # Remove from dependency-injector container
             del self._container.providers[provider_name]
 
-            # Remove metadata
+            # Remove metadata and registered type
             if provider_name in self._component_metadata:
                 del self._component_metadata[provider_name]
+            if provider_name in self._registered_types:
+                del self._registered_types[provider_name]
 
             logger.debug(
                 "Unregistered component",
@@ -387,8 +392,9 @@ class Container(ContainerInterface[T]):
             self._container.reset_singletons()
             self._container.providers.clear()
 
-            # Clear metadata
+            # Clear metadata and registered types
             self._component_metadata.clear()
+            self._registered_types.clear()
             self._registration_count = 0
 
             # Clear scope manager
@@ -399,9 +405,7 @@ class Container(ContainerInterface[T]):
     def get_registered_types(self) -> list[type]:
         """Get a list of all registered interface types."""
         with self._lock:
-            # This is a simplified implementation - in a real scenario,
-            # we'd need to track the actual types
-            return []
+            return list(self._registered_types.values())
 
     def get_registration_count(self) -> int:
         """Get the number of registered components."""
@@ -452,8 +456,9 @@ class Container(ContainerInterface[T]):
                 # Clear scope manager
                 self._scope_manager.clear_all()
 
-                # Clear metadata
+                # Clear metadata and registered types
                 self._component_metadata.clear()
+                self._registered_types.clear()
                 self._registration_count = 0
 
                 logger.debug("Shutdown container", container=self._name)

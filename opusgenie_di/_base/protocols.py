@@ -1,7 +1,7 @@
 """Protocol definitions for dependency injection components."""
 
 from abc import abstractmethod
-from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
+from typing import Any, Protocol, TypeVar, runtime_checkable
 
 from .enums import ComponentScope, LifecycleStage
 
@@ -44,7 +44,7 @@ class InjectableProtocol(Protocol):
 
 
 @runtime_checkable
-class ComponentProviderProtocol(Protocol, Generic[T]):
+class ComponentProviderProtocol[T](Protocol):
     """
     Protocol for component providers.
 

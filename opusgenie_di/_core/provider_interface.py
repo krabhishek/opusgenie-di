@@ -1,14 +1,14 @@
 """Provider interface for component creation."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 from .._base import ComponentScope
 
 T = TypeVar("T")
 
 
-class ProviderInterface(ABC, Generic[T]):
+class ProviderInterface[T](ABC):
     """
     Abstract base class for component providers.
 
@@ -147,6 +147,5 @@ class ComponentProvider(ProviderInterface[T]):
         elif hasattr(instance, "dispose"):
             if callable(instance.dispose):
                 instance.dispose()
-        elif hasattr(instance, "close"):
-            if callable(instance.close):
-                instance.close()
+        elif hasattr(instance, "close") and callable(instance.close):
+            instance.close()

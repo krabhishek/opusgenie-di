@@ -1,7 +1,7 @@
 """Container interface for dependency injection."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 from .._base import ComponentMetadataProtocol, ComponentProviderProtocol, ComponentScope
 
@@ -11,7 +11,7 @@ TInterface = TypeVar("TInterface")
 TImplementation = TypeVar("TImplementation")
 
 
-class ContainerInterface(ABC, Generic[T]):
+class ContainerInterface[T](ABC):
     """
     Abstract base class for dependency injection containers.
 

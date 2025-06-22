@@ -119,7 +119,7 @@ class ImportCollection(BaseModel):
 
     def get_source_contexts(self) -> list[str]:
         """Get all unique source context names."""
-        return list(set(imp.from_context for imp in self.imports))
+        return list({imp.from_context for imp in self.imports})
 
     def validate_imports(self) -> list[str]:
         """
