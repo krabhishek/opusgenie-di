@@ -1,5 +1,9 @@
 # OpusGenie Dependency Injection
 
+[![Apache License 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI version](https://badge.fury.io/py/opusgenie-di.svg)](https://pypi.org/project/opusgenie-di/)
+
 A powerful, multi-context dependency injection framework for Python that provides Angular-style dependency injection with support for multiple isolated contexts, cross-context imports, declarative module definitions, and comprehensive lifecycle management.
 
 ## Features
@@ -444,8 +448,8 @@ context.enable_auto_wiring()
 
 ## License
 
-MIT License - see LICENSE file for details.
+Apache License 2.0 - see LICENSE file for details.
 
 ## Support
 
-For issues and questions, please visit our [GitHub repository](https://github.com/your-org/opusgenie-di).
+For issues and questions, please visit our [GitHub repository](https://github.com/krabhishek/opusgenie-di).

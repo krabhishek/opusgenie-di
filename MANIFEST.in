@@ -1,0 +1,33 @@
+# Include the license and readme
+include LICENSE
+include README.md
+
+# Include the py.typed file for type hints
+include opusgenie_di/py.typed
+
+# Exclude development and build files
+exclude .gitignore
+exclude .ruff_cache
+exclude .mypy_cache
+exclude CLAUDE.md
+prune .git
+prune .venv
+prune venv
+prune __pycache__
+prune build
+prune dist
+prune *.egg-info
+
+# Exclude test files
+prune tests
+
+# Include examples for documentation
+recursive-include examples *.py
+
+# Exclude any temporary or editor files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.orig
+global-exclude *.rej
+global-exclude *~
+global-exclude .DS_Store

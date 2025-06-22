@@ -6,7 +6,31 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = {file = "LICENSE"}
 authors = [
-    {name = "Abhishek Pathak", email = "abhishek@opusgenie.com"}
+    {name = "Abhishek Pathak"}
+]
+keywords = [
+    "dependency-injection",
+    "di",
+    "inversion-of-control",
+    "ioc",
+    "framework",
+    "python",
+    "multi-context",
+    "angular-style",
+    "type-safe"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: System :: Systems Administration",
+    "Typing :: Typed",
 ]
 
 dependencies = [
@@ -31,6 +55,7 @@ opusgenie_di = ["py.typed"]
 
 [dependency-groups]
 dev = [
+    "build>=1.2.2.post1",
     "coverage>=7.8.2",
     "mypy>=1.15.0",
     "pytest>=8.3.5",
@@ -103,4 +128,8 @@ force-single-line = false
 force-sort-within-sections = true
 
 [project.urls]
-Source = "https://github.com/krabhishek/opusgenie-di"
+Homepage = "https://github.com/krabhishek/opusgenie-di"
+Repository = "https://github.com/krabhishek/opusgenie-di"
+"Bug Tracker" = "https://github.com/krabhishek/opusgenie-di/issues"
+Documentation = "https://github.com/krabhishek/opusgenie-di#readme"
+Changelog = "https://github.com/krabhishek/opusgenie-di/releases"
