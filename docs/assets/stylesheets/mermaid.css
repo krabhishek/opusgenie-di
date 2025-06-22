@@ -1,0 +1,184 @@
+/* 
+ * Mermaid diagram styling for OpusGenie DI Documentation
+ * Custom styling for banking architecture diagrams
+ */
+
+/* Light theme mermaid styling */
+.mermaid {
+  text-align: center;
+  margin: 1em 0;
+}
+
+/* Banking context colors for architecture diagrams */
+.mermaid .node.infrastructure {
+  fill: #E0F2F1 !important;
+  stroke: #00695C !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid .node.customer {
+  fill: #E3F2FD !important;
+  stroke: #1565C0 !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid .node.account {
+  fill: #E8F5E8 !important;
+  stroke: #2E7D32 !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid .node.payment {
+  fill: #FFF3E0 !important;
+  stroke: #F57C00 !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid .node.compliance {
+  fill: #FCE4EC !important;
+  stroke: #C2185B !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid .node.notification {
+  fill: #F3E5F5 !important;
+  stroke: #7B1FA2 !important;
+  stroke-width: 2px !important;
+}
+
+/* Sequence diagram styling for banking flows */
+.mermaid .actor {
+  fill: #E3F2FD !important;
+  stroke: #1565C0 !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid .messageLine0 {
+  stroke: #1565C0 !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid .messageLine1 {
+  stroke: #2E7D32 !important;
+  stroke-width: 2px !important;
+  stroke-dasharray: 5,5 !important;
+}
+
+/* Flowchart styling for decision trees */
+.mermaid .flowchart-node {
+  font-size: 14px !important;
+}
+
+.mermaid .decision {
+  fill: #FFF3E0 !important;
+  stroke: #F57C00 !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid .process {
+  fill: #E8F5E8 !important;
+  stroke: #2E7D32 !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid .start-end {
+  fill: #E3F2FD !important;
+  stroke: #1565C0 !important;
+  stroke-width: 2px !important;
+}
+
+/* State diagram styling for component lifecycles */
+.mermaid .state {
+  fill: #F3E5F5 !important;
+  stroke: #7B1FA2 !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid .transition {
+  stroke: #424242 !important;
+  stroke-width: 2px !important;
+}
+
+/* Gantt chart styling for development timelines */
+.mermaid .section0 {
+  fill: #E3F2FD !important;
+}
+
+.mermaid .section1 {
+  fill: #E8F5E8 !important;
+}
+
+.mermaid .section2 {
+  fill: #FFF3E0 !important;
+}
+
+.mermaid .section3 {
+  fill: #FCE4EC !important;
+}
+
+/* Dark theme adjustments */
+[data-md-color-scheme="slate"] .mermaid .node.infrastructure {
+  fill: #1B5E20 !important;
+  stroke: #4CAF50 !important;
+}
+
+[data-md-color-scheme="slate"] .mermaid .node.customer {
+  fill: #0D47A1 !important;
+  stroke: #42A5F5 !important;
+}
+
+[data-md-color-scheme="slate"] .mermaid .node.account {
+  fill: #1B5E20 !important;
+  stroke: #66BB6A !important;
+}
+
+[data-md-color-scheme="slate"] .mermaid .node.payment {
+  fill: #E65100 !important;
+  stroke: #FFB74D !important;
+}
+
+[data-md-color-scheme="slate"] .mermaid .node.compliance {
+  fill: #880E4F !important;
+  stroke: #F06292 !important;
+}
+
+[data-md-color-scheme="slate"] .mermaid .node.notification {
+  fill: #4A148C !important;
+  stroke: #BA68C8 !important;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .mermaid {
+    font-size: 12px !important;
+  }
+  
+  .mermaid .flowchart-node {
+    font-size: 11px !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .mermaid .node {
+    stroke-width: 3px !important;
+  }
+  
+  .mermaid .edge {
+    stroke-width: 3px !important;
+  }
+}
+
+/* Print styles for diagrams */
+@media print {
+  .mermaid {
+    page-break-inside: avoid;
+    margin: 1em 0;
+  }
+  
+  /* Ensure diagrams are visible in print */
+  .mermaid svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}

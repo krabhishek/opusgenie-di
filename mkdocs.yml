@@ -1,0 +1,191 @@
+site_name: OpusGenie DI Documentation
+site_description: A powerful, multi-context dependency injection framework for Python
+site_author: Abhishek Pathak
+site_url: https://github.com/krabhishek/opusgenie-di
+
+repo_name: krabhishek/opusgenie-di
+repo_url: https://github.com/krabhishek/opusgenie-di
+edit_uri: edit/main/docs/
+
+copyright: Copyright &copy; 2024 Abhishek Pathak
+
+theme:
+  name: material
+  language: en
+  custom_dir: docs/overrides
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - search.share
+    - content.code.copy
+    - content.code.select
+    - content.tabs.link
+    - content.tooltips
+    - content.footnote.tooltips
+    - toc.follow
+    - toc.integrate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  # logo: assets/logo.svg
+  # favicon: assets/favicon.png
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Quick Start: getting-started/quickstart.md
+      - Installation: getting-started/installation.md
+  - Core Concepts:
+      - Dependency Injection: core-concepts/dependency-injection.md
+      - Components: core-concepts/components.md
+      - Scopes & Lifecycle: core-concepts/scopes.md
+      - Contexts: core-concepts/contexts.md
+  - Multi-Context Architecture:
+      - Why Multi-Context?: multi-context/multi-context.md
+      - Imports & Exports: multi-context/imports-exports.md
+      - Module Builder: multi-context/module-builder.md
+  - Advanced Features:
+      - Async Lifecycle: advanced/async-lifecycle.md
+      - Hooks & Events: advanced/hooks-events.md
+      - Testing: advanced/testing.md
+      - Error Handling: advanced/error-handling.md
+  - Real-World Examples:
+      - Banking Architecture: examples/banking-architecture.md
+      - Account Management: examples/account-management.md
+      - Loan Processing: examples/loan-processing.md
+      - Payment Processing: examples/payment-processing.md
+      - Compliance & Reporting: examples/compliance.md
+  - Best Practices:
+      - Design Patterns: best-practices/patterns.md
+      - Performance: best-practices/performance.md
+      - Security: best-practices/security.md
+  - API Reference:
+      - Core: api/core.md
+      - Decorators: api/decorators.md
+      - Modules: api/modules.md
+      - Hooks: api/hooks.md
+      - Testing: api/testing.md
+
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - awesome-pages:
+      collapse_single_pages: false
+      strict: false
+  - git-revision-date-localized:
+      enabled: true
+      type: date
+      timezone: UTC
+      locale: en
+      fallback_to_build_date: true
+  - macros:
+      include_dir: docs/includes
+  - mermaid2
+  - minify:
+      minify_html: true
+      minify_js: true
+      minify_css: true
+      htmlmin_opts:
+        remove_comments: true
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: ["."]
+          options:
+            docstring_style: google
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            show_submodules: false
+            show_source: false
+            show_bases: true
+            show_inheritance_diagram: true
+            group_by_category: true
+            heading_level: 2
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      title: Page contents
+  - tables
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: krabhishek
+      repo: opusgenie-di
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - pymdownx.snippets:
+      base_path: ['.']
+      check_paths: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/krabhishek/opusgenie-di
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/opusgenie-di/
+  generator: false
+  version:
+    provider: mike
+
+# extra_css:
+  # - assets/stylesheets/extra.css
+  # - assets/stylesheets/mermaid.css
+
+extra_javascript:
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js

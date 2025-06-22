@@ -68,6 +68,17 @@ dev = [
     "ruff>=0.11.11",
     "twine>=6.1.0",
 ]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-awesome-pages-plugin>=2.10.1",
+    "mkdocs-git-revision-date-localized-plugin>=1.2.0",
+    "mkdocs-macros-plugin>=1.0.0",
+    "mkdocs-material[imaging]>=9.6.14",
+    "mkdocs-mermaid2-plugin>=1.1.0",
+    "mkdocs-minify-plugin>=0.8.0",
+    "mkdocstrings[python]>=0.29.1",
+    "pymdown-extensions>=10.15",
+]
 
 [tool.mypy]
 python_version = "3.12"

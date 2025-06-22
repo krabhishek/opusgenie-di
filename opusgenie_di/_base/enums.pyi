@@ -1,0 +1,40 @@
+from enum import Enum
+
+class ComponentScope(Enum):
+    SINGLETON = "SINGLETON"
+    TRANSIENT = "TRANSIENT"
+    SCOPED = "SCOPED"
+    FACTORY = "FACTORY"
+    CONDITIONAL = "CONDITIONAL"
+
+class ComponentLayer(Enum):
+    INFRASTRUCTURE = "INFRASTRUCTURE"
+    APPLICATION = "APPLICATION"
+    DOMAIN = "DOMAIN"
+    FRAMEWORK = "FRAMEWORK"
+    PRESENTATION = "PRESENTATION"
+
+class RegistrationStrategy(Enum):
+    AUTO = "AUTO"
+    MANUAL = "MANUAL"
+    LAZY = "LAZY"
+
+class LifecycleStage(Enum):
+    # Core lifecycle stages
+    CREATED = "CREATED"
+    INITIALIZING = "INITIALIZING"
+    INITIALIZED = "INITIALIZED"
+    ACTIVE = "ACTIVE"
+    STOPPING = "STOPPING"
+    STOPPED = "STOPPED"
+    DISPOSING = "DISPOSING"
+    DISPOSED = "DISPOSED"
+    ERROR = "ERROR"
+
+    # Extended lifecycle stages
+    PRE_INITIALIZATION = "PRE_INITIALIZATION"
+    POST_INITIALIZATION = "POST_INITIALIZATION"
+    STARTUP = "STARTUP"
+    RUNNING = "RUNNING"
+    SHUTDOWN = "SHUTDOWN"
+    POST_SHUTDOWN = "POST_SHUTDOWN"

@@ -1,0 +1,44 @@
+from typing import Any, Self, TypeVar
+
+from .._base import ComponentScope
+from .context_impl import Context
+
+TInterface = TypeVar("TInterface")  # noqa: PYI001
+
+class GlobalContext(Context):
+    _instance: GlobalContext | None
+    _initialized: bool
+    _framework_components_registered: bool
+
+    def __new__(cls) -> Self: ...
+    def __init__(self) -> None: ...
+    def register_framework_components(self) -> None: ...
+    def reset(self) -> None: ...
+    def get_summary(self) -> dict[str, Any]: ...
+
+def get_global_context() -> GlobalContext: ...
+
+def register_global_component(
+    interface: type,
+    implementation: type | None = None,
+    *,
+    scope: ComponentScope = ...,
+    name: str | None = None,
+    tags: dict[str, Any] | None = None,
+) -> None: ...
+
+def resolve_global_component[TInterface](
+    interface: type[TInterface],
+    name: str | None = None
+) -> TInterface: ...
+
+async def resolve_global_component_async[TInterface](
+    interface: type[TInterface],
+    name: str | None = None
+) -> TInterface: ...
+
+def reset_global_context() -> None: ...
+
+def get_global_context_summary() -> dict[str, Any]: ...
+
+def is_global_context_initialized() -> bool: ...

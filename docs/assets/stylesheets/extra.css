@@ -1,0 +1,154 @@
+/* 
+ * Extra CSS for OpusGenie DI Documentation
+ * Enhances the Material theme with banking-specific styling
+ */
+
+/* OgPgy Bank color scheme */
+:root {
+  --ogpgy-primary: #1565C0;      /* Deep blue for banking trust */
+  --ogpgy-secondary: #FF8F00;    /* Orange accent for energy */
+  --ogpgy-success: #2E7D32;      /* Green for success states */
+  --ogpgy-warning: #F57C00;      /* Orange for warnings */
+  --ogpgy-error: #C62828;        /* Red for errors */
+  --ogpgy-info: #0277BD;         /* Info blue */
+}
+
+/* Banking-specific callouts */
+.md-typeset .admonition.banking {
+  border-color: var(--ogpgy-primary);
+}
+
+.md-typeset .admonition.banking > .admonition-title {
+  background-color: var(--ogpgy-primary);
+  color: white;
+}
+
+.md-typeset .admonition.banking > .admonition-title::before {
+  content: "🏦";
+}
+
+/* Team member callouts */
+.md-typeset .admonition.team-member {
+  border-color: var(--ogpgy-secondary);
+}
+
+.md-typeset .admonition.team-member > .admonition-title {
+  background-color: var(--ogpgy-secondary);
+  color: white;
+}
+
+/* Code comparison styling */
+.tabbed-set > input:nth-child(1):checked ~ .tabbed-labels > .tabbed-label:nth-child(1),
+.tabbed-set > input:nth-child(2):checked ~ .tabbed-labels > .tabbed-label:nth-child(2) {
+  color: var(--md-accent-fg-color);
+}
+
+/* Success/error indicators in code */
+.good-code {
+  border-left: 4px solid var(--ogpgy-success);
+  background-color: var(--md-code-bg-color);
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.bad-code {
+  border-left: 4px solid var(--ogpgy-error);
+  background-color: var(--md-code-bg-color);
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+/* Banking flow diagrams */
+.banking-flow {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+/* Component cards */
+.component-card {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  background: var(--md-default-bg-color);
+}
+
+.component-card h4 {
+  margin-top: 0;
+  color: var(--ogpgy-primary);
+}
+
+/* Architecture diagrams */
+.architecture-section {
+  background: var(--md-code-bg-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+/* Performance metrics styling */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.metric-card {
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--ogpgy-primary);
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: var(--md-default-fg-color--light);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Responsive design adjustments */
+@media screen and (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .component-card {
+    margin: 0.25rem 0;
+    padding: 0.75rem;
+  }
+}
+
+/* Dark mode adjustments */
+[data-md-color-scheme="slate"] {
+  --ogpgy-primary: #42A5F5;
+  --ogpgy-secondary: #FFB74D;
+}
+
+[data-md-color-scheme="slate"] .banking-flow {
+  background: linear-gradient(135deg, #263238 0%, #37474f 100%);
+}
+
+/* Print styles */
+@media print {
+  .md-header,
+  .md-sidebar,
+  .md-footer {
+    display: none !important;
+  }
+  
+  .md-content {
+    margin: 0 !important;
+    max-width: none !important;
+  }
+}
