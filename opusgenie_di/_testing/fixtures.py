@@ -3,7 +3,7 @@
 from typing import Any
 
 from .._base import BaseComponent, ComponentScope
-from .._core import Context, get_global_context, reset_global_context
+from .._core import Context, reset_global_context
 from .._decorators import og_component
 from .._hooks import clear_all_hooks, set_hooks_enabled
 from .._registry import clear_global_registry
@@ -76,7 +76,9 @@ def create_test_context(name: str = "test") -> Context:
     context.register_component(MockComponent, scope=ComponentScope.SINGLETON)
     context.register_component(MockSingletonComponent, scope=ComponentScope.SINGLETON)
     context.register_component(MockTransientComponent, scope=ComponentScope.TRANSIENT)
-    context.register_component(MockComponentWithDependency, scope=ComponentScope.SINGLETON)
+    context.register_component(
+        MockComponentWithDependency, scope=ComponentScope.SINGLETON
+    )
 
     logger.debug("Created test context", context_name=name)
     return context
@@ -120,7 +122,9 @@ def create_mock_factory(value: str) -> Any:
     return factory
 
 
-def assert_component_registered(context: Context, component_type: type, name: str | None = None) -> None:
+def assert_component_registered(
+    context: Context, component_type: type, name: str | None = None
+) -> None:
     """
     Assert that a component is registered in a context.
 
@@ -139,7 +143,9 @@ def assert_component_registered(context: Context, component_type: type, name: st
         )
 
 
-def assert_component_not_registered(context: Context, component_type: type, name: str | None = None) -> None:
+def assert_component_not_registered(
+    context: Context, component_type: type, name: str | None = None
+) -> None:
     """
     Assert that a component is not registered in a context.
 
@@ -212,7 +218,9 @@ def create_test_module_classes() -> dict[str, type]:
 
     @og_context(
         name="test_application",
-        imports=[ModuleContextImport(MockComponent, from_context="test_infrastructure")],
+        imports=[
+            ModuleContextImport(MockComponent, from_context="test_infrastructure")
+        ],
         exports=[MockComponentWithDependency],
         providers=[MockComponentWithDependency],
     )
@@ -264,6 +272,4 @@ class TestEventCollector:
         for event in self.events:
             if all(event.get(key) == value for key, value in event_filters.items()):
                 return
-        raise AssertionError(
-            f"No event found matching filters: {event_filters}"
-        )
+        raise AssertionError(f"No event found matching filters: {event_filters}")

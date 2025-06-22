@@ -128,9 +128,7 @@ class ContainerInterface(ABC, Generic[T]):
         ...
 
     @abstractmethod
-    def unregister(
-        self, interface: type[TInterface], name: str | None = None
-    ) -> bool:
+    def unregister(self, interface: type[TInterface], name: str | None = None) -> bool:
         """
         Unregister a component from the container.
 

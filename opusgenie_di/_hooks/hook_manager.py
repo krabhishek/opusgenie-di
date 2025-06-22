@@ -24,11 +24,15 @@ class HookManager:
 
     # Event hook methods
 
-    def register_event_hook(self, event: EventHook, hook_function: HookFunction) -> None:
+    def register_event_hook(
+        self, event: EventHook, hook_function: HookFunction
+    ) -> None:
         """Register an event hook."""
         self._event_manager.register_hook(event, hook_function)
 
-    def unregister_event_hook(self, event: EventHook, hook_function: HookFunction) -> bool:
+    def unregister_event_hook(
+        self, event: EventHook, hook_function: HookFunction
+    ) -> bool:
         """Unregister an event hook."""
         return self._event_manager.unregister_hook(event, hook_function)
 

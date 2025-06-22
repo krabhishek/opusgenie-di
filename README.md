@@ -4,9 +4,10 @@ A powerful, multi-context dependency injection framework for Python that provide
 
 ## Features
 
+- **Automatic Dependency Injection**: Robust auto-wiring of dependencies based on type hints
 - **Multi-Context Architecture**: Create isolated dependency contexts with clear boundaries
+- **Cross-Context Dependencies**: Automatically inject dependencies from imported contexts
 - **Declarative Configuration**: Use `@og_component` and `@og_context` decorators for clean setup
-- **Cross-Context Imports**: Import dependencies between contexts safely
 - **Component Scopes**: Singleton, Transient, and Scoped lifecycles
 - **Type Safety**: Full type safety with Python type hints and runtime validation
 - **Event System**: Built-in event hooks for monitoring and extension
@@ -21,7 +22,7 @@ pip install opusgenie-di
 
 ## Quick Start
 
-### Basic Usage
+### Basic Usage with Automatic Dependency Injection
 
 ```python
 from opusgenie_di import og_component, BaseComponent, ComponentScope, get_global_context
@@ -32,27 +33,28 @@ class DatabaseService(BaseComponent):
     def get_data(self) -> str:
         return "Data from database"
 
-# Define a component with dependencies
+# Define a component with automatic dependency injection
 @og_component(scope=ComponentScope.SINGLETON)
 class UserService(BaseComponent):
-    def __init__(self, db_service: DatabaseService | None = None) -> None:
+    def __init__(self, db_service: DatabaseService) -> None:  # No | None = None needed!
         super().__init__()
-        self.__dict__["db_service"] = db_service
+        # Natural assignment - clean and intuitive!
+        self.db_service = db_service
 
     def get_user(self, user_id: str) -> dict[str, str]:
-        db_service = self.__dict__.get("db_service")
-        if db_service:
-            data = db_service.get_data()
-            return {"id": user_id, "name": f"User_{user_id}", "source": data}
-        return {"id": user_id, "name": f"User_{user_id}", "source": "unknown"}
+        data = self.db_service.get_data()
+        return {"id": user_id, "name": f"User_{user_id}", "source": data}
 
-# Use the global context
+# Use the global context with auto-wiring enabled
 context = get_global_context()
-user_service = context.resolve(UserService)
+context.enable_auto_wiring()  # Enable automatic dependency injection
+
+user_service = context.resolve(UserService)  # DatabaseService automatically injected!
 user_data = user_service.get_user("123")
+print(user_data)  # {'id': '123', 'name': 'User_123', 'source': 'Data from database'}
 ```
 
-### Multi-Context Architecture
+### Multi-Context Architecture with Cross-Context Auto-Wiring
 
 ```python
 from opusgenie_di import (
@@ -66,23 +68,33 @@ class DatabaseRepository(BaseComponent):
     def get_data(self) -> str:
         return "Data from database"
 
-# Business layer components
+@og_component(scope=ComponentScope.SINGLETON, auto_register=False)
+class CacheRepository(BaseComponent):
+    def get_cached_data(self) -> str:
+        return "Cached data"
+
+# Business layer components with cross-context dependencies
 @og_component(scope=ComponentScope.SINGLETON, auto_register=False)
 class BusinessService(BaseComponent):
-    def __init__(self, db_repo: DatabaseRepository | None = None) -> None:
+    def __init__(self, db_repo: DatabaseRepository, cache_repo: CacheRepository) -> None:
         super().__init__()
-        self.__dict__["db_repo"] = db_repo
+        # Dependencies automatically injected from infrastructure context!
+        self.db_repo = db_repo
+        self.cache_repo = cache_repo
 
     def process_data(self) -> dict[str, str]:
-        db_repo = self.__dict__.get("db_repo")
-        return {"status": "processed", "data": db_repo.get_data() if db_repo else ""}
+        return {
+            "status": "processed",
+            "db_data": self.db_repo.get_data(),
+            "cache_data": self.cache_repo.get_cached_data(),
+        }
 
 # Define module contexts
 @og_context(
     name="infrastructure_context",
-    imports=[],
-    exports=[DatabaseRepository],
-    providers=[DatabaseRepository],
+    imports=[],  # Base layer - no imports
+    exports=[DatabaseRepository, CacheRepository],
+    providers=[DatabaseRepository, CacheRepository],
 )
 class InfrastructureModule:
     pass
@@ -90,7 +102,8 @@ class InfrastructureModule:
 @og_context(
     name="business_context",
     imports=[
-        ModuleContextImport(DatabaseRepository, from_context="infrastructure_context"),
+        ModuleContextImport(component_type=DatabaseRepository, from_context="infrastructure_context"),
+        ModuleContextImport(component_type=CacheRepository, from_context="infrastructure_context"),
     ],
     exports=[BusinessService],
     providers=[BusinessService],
@@ -98,15 +111,95 @@ class InfrastructureModule:
 class BusinessModule:
     pass
 
-# Build and use contexts
+# Build and use contexts (auto-wiring happens automatically!)
 async def main():
     builder = ContextModuleBuilder()
     contexts = await builder.build_contexts(InfrastructureModule, BusinessModule)
     
     business_context = contexts["business_context"]
-    business_service = business_context.resolve(BusinessService)
+    business_service = business_context.resolve(BusinessService)  # All dependencies auto-injected!
     result = business_service.process_data()
-    print(result)
+    print(result)  # {'status': 'processed', 'db_data': 'Data from database', 'cache_data': 'Cached data'}
+```
+
+## Automatic Dependency Injection
+
+OpusGenie DI provides robust automatic dependency injection based on constructor type hints. The framework automatically analyzes constructor parameters and injects the appropriate dependencies.
+
+### How It Works
+
+1. **Type Analysis**: The framework analyzes constructor type hints to determine dependencies
+2. **Automatic Resolution**: Dependencies are automatically resolved from the context or imported contexts  
+3. **Lazy Evaluation**: Dependencies are resolved at component creation time, not registration time
+4. **Cross-Context Support**: Dependencies can be automatically injected from imported contexts
+
+### Key Features
+
+- **No Manual Configuration**: Just declare dependencies in constructor parameters
+- **Type-Safe**: Uses Python type hints for dependency resolution
+- **Cross-Context**: Automatically resolves dependencies from imported contexts
+- **Error Handling**: Clear error messages for missing or circular dependencies
+- **Optional Dependencies**: Support for optional dependencies with type unions
+
+### Example: Simple Auto-Wiring
+
+```python
+@og_component()
+class EmailService(BaseComponent):
+    def send_email(self, message: str) -> bool:
+        print(f"Sending email: {message}")
+        return True
+
+@og_component()
+class NotificationService(BaseComponent):
+    # EmailService automatically injected!
+    def __init__(self, email_service: EmailService) -> None:
+        super().__init__()
+        self.email_service = email_service
+    
+    def notify(self, message: str) -> None:
+        self.email_service.send_email(message)
+
+# Enable auto-wiring and use
+context = get_global_context()
+context.enable_auto_wiring()
+notification_service = context.resolve(NotificationService)  # EmailService auto-injected!
+```
+
+### Example: Cross-Context Auto-Wiring
+
+```python
+# Dependencies from infrastructure context automatically injected into business context
+@og_context(
+    name="business_context",
+    imports=[
+        ModuleContextImport(component_type=DatabaseService, from_context="infrastructure"),
+        ModuleContextImport(component_type=CacheService, from_context="infrastructure"),
+    ],
+    providers=[UserService],
+)
+class BusinessModule:
+    pass
+
+@og_component(auto_register=False)
+class UserService(BaseComponent):
+    def __init__(self, db: DatabaseService, cache: CacheService) -> None:
+        super().__init__()
+        # Both dependencies automatically resolved from infrastructure context!
+        self.db = db
+        self.cache = cache
+```
+
+### Optional Dependencies
+
+```python
+@og_component()
+class ServiceWithOptionalDependency(BaseComponent):
+    def __init__(self, required_service: RequiredService, 
+                 optional_service: OptionalService | None = None) -> None:
+        super().__init__()
+        self.required_service = required_service
+        self.optional_service = optional_service  # Will be None if not available
 ```
 
 ## Component Scopes
@@ -234,15 +327,18 @@ class DatabaseProvider(BaseComponent):
 class ServiceWithProtocol(BaseComponent):
     def __init__(self, provider: DataProvider) -> None:
         super().__init__()
-        self.__dict__["provider"] = provider
+        self.provider = provider
 ```
 
 ## Performance Considerations
 
 - **Lazy Loading**: Components are created only when needed
+- **Smart Auto-Wiring**: Dependencies are analyzed once and cached for fast resolution
+- **Efficient Resolution**: Auto-wiring uses optimized factory functions for dependency injection
 - **Caching**: Singleton instances are cached for performance
 - **Minimal Overhead**: Built on top of proven `dependency-injector` library
 - **Memory Efficient**: Contexts can be disposed when no longer needed
+- **Cross-Context Optimization**: Imported dependencies are resolved efficiently without duplication
 
 ## Development and Contributing
 
@@ -307,6 +403,44 @@ python examples/multi_context.py
 - `get_global_context()`: Access the global context
 - `reset_global_context()`: Reset global state
 - `create_test_context()`: Create isolated test context
+- `context.enable_auto_wiring()`: Enable automatic dependency injection for a context
+- `ContextModuleBuilder()`: Build contexts with automatic cross-context wiring
+
+## Migration Guide
+
+### Upgrading to Auto-Wiring
+
+**Before (manual dependency handling):**
+```python
+def __init__(self, db_service: DatabaseService | None = None) -> None:
+    super().__init__()
+    self.__dict__["db_service"] = db_service
+
+def get_data(self):
+    db_service = self.__dict__.get("db_service")
+    if db_service:
+        return db_service.get_data()
+    return "no data"
+```
+
+**After (automatic dependency injection):**
+```python
+def __init__(self, db_service: DatabaseService) -> None:
+    super().__init__()
+    self.db_service = db_service
+
+def get_data(self):
+    return self.db_service.get_data()  # Always available!
+
+# Don't forget to enable auto-wiring:
+context.enable_auto_wiring()
+```
+
+### Multi-Context Changes
+
+- `ModuleContextImport` now requires keyword arguments: `ModuleContextImport(component_type=Type, from_context="name")`
+- Auto-wiring is automatically enabled for contexts built with `ContextModuleBuilder`
+- Dependencies are resolved at creation time, improving error detection
 
 ## License
 

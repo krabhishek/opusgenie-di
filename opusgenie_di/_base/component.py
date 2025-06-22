@@ -7,7 +7,7 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .enums import ComponentLayer, ComponentScope, LifecycleStage
+from .enums import ComponentLayer, LifecycleStage
 from .metadata import ComponentMetadata
 
 
@@ -24,7 +24,7 @@ class BaseComponent(BaseModel, ABC):
         arbitrary_types_allowed=True,
         validate_assignment=False,
         use_enum_values=True,
-        extra="forbid",
+        extra="allow",  # Allow extra fields for dependency injection
         validate_default=True,
     )
 

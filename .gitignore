@@ -28,6 +28,6 @@ workbench/
 # docs
 site/
 
-# examples
-
-examples/
+# AI assistants
+CLAUDE.md
+.claude/

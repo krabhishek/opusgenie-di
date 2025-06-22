@@ -25,15 +25,9 @@ class ProviderConfig(BaseModel):
     scope: ComponentScope = Field(
         default=ComponentScope.SINGLETON, description="Component lifecycle scope"
     )
-    name: str | None = Field(
-        default=None, description="Optional provider name"
-    )
-    factory: Any = Field(
-        default=None, description="Optional factory function"
-    )
-    tags: dict[str, str] = Field(
-        default_factory=dict, description="Provider tags"
-    )
+    name: str | None = Field(default=None, description="Optional provider name")
+    factory: Any = Field(default=None, description="Optional factory function")
+    tags: dict[str, str] = Field(default_factory=dict, description="Provider tags")
     conditional: Any = Field(
         default=None, description="Optional condition for provider activation"
     )
@@ -43,7 +37,7 @@ class ProviderConfig(BaseModel):
     def model_post_init(self, __context: Any, /) -> None:
         """Validate provider configuration after initialization."""
         impl = self.implementation or self.interface
-        
+
         # Validate the registration
         validate_component_registration(
             self.interface,
@@ -87,8 +81,7 @@ class ProviderConfig(BaseModel):
         try:
             if callable(self.conditional):
                 return bool(self.conditional())
-            else:
-                return bool(self.conditional)
+            return bool(self.conditional)
         except Exception as e:
             logger.warning(
                 "Error evaluating provider condition",
@@ -191,7 +184,7 @@ class ProviderCollection(BaseModel):
         for provider in self.providers:
             interface_name = provider.interface.__name__
             provider_name = provider.get_provider_name()
-            
+
             if interface_name in interfaces:
                 existing_provider = interfaces[interface_name]
                 if existing_provider != provider_name:
@@ -241,10 +234,10 @@ class ProviderCollection(BaseModel):
         if isinstance(item, str):
             # Check by provider name
             return any(p.get_provider_name() == item for p in self.providers)
-        elif isinstance(item, type):
+        if isinstance(item, type):
             # Check by interface type
             return any(p.interface == item for p in self.providers)
-        elif isinstance(item, ProviderConfig):
+        if isinstance(item, ProviderConfig):
             return item in self.providers
         return False
 
@@ -261,19 +254,17 @@ def normalize_provider_specification(spec: Any) -> ProviderConfig:
     """
     if isinstance(spec, ProviderConfig):
         return spec
-    elif isinstance(spec, dict):
+    if isinstance(spec, dict):
         # Handle dictionary format: {interface: implementation}
         if len(spec) == 1:
             interface, implementation = next(iter(spec.items()))
             return ProviderConfig(interface=interface, implementation=implementation)
-        else:
-            # Handle expanded dictionary format
-            return ProviderConfig(**spec)
-    elif isinstance(spec, type):
+        # Handle expanded dictionary format
+        return ProviderConfig(**spec)
+    if isinstance(spec, type):
         # Handle class self-registration
         return ProviderConfig(interface=spec, implementation=spec)
-    else:
-        raise ValueError(f"Invalid provider specification: {spec}")
+    raise ValueError(f"Invalid provider specification: {spec}")
 
 
 def normalize_provider_list(specs: list[Any]) -> list[ProviderConfig]:

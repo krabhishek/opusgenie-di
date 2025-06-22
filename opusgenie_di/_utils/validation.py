@@ -74,7 +74,7 @@ def validate_component_registration(
         raise ComponentValidationError(
             f"Implementation {implementation.__name__} is not instantiable",
             component_type=component_name,
-            details=f"Implementation must be a concrete class with __init__ method",
+            details="Implementation must be a concrete class with __init__ method",
         )
 
     # Validate interface/implementation compatibility

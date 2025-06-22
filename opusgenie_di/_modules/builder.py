@@ -2,13 +2,12 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from .._core import Context, get_global_context
+from .._core import Context
 from .._hooks import EventHook, emit_event
-from .._registry import get_global_registry, ModuleMetadata
+from .._registry import ModuleMetadata, get_global_registry
 from .._utils import get_logger, log_error, run_async_in_sync
-from ..decorators.context_decorator import get_module_metadata, is_context_module
 
 logger = get_logger(__name__)
 
@@ -38,6 +37,12 @@ class ContextModuleBuilder(BaseModel):
             RuntimeError: If context creation fails
         """
         try:
+            # Import here to avoid circular imports
+            from .._decorators.context_decorator import (
+                get_module_metadata,
+                is_context_module,
+            )
+
             # Validate all module classes
             module_metadatas = []
             for module_class in module_classes:
@@ -136,6 +141,20 @@ class ContextModuleBuilder(BaseModel):
             # Configure imports from existing contexts
             await self._configure_context_imports(context, metadata, existing_contexts)
 
+            # Enable auto-wiring after all components and imports are configured
+            try:
+                context.enable_auto_wiring()
+                logger.debug(
+                    "Enabled auto-wiring for context",
+                    context_name=metadata.name,
+                )
+            except Exception as e:
+                logger.warning(
+                    "Failed to enable auto-wiring for context",
+                    context_name=metadata.name,
+                    error=str(e),
+                )
+
             logger.debug(
                 "Built context from module",
                 context_name=metadata.name,
@@ -179,34 +198,34 @@ class ContextModuleBuilder(BaseModel):
                         f"Required source context '{source_context_name}' not available "
                         f"for import in module '{metadata.name}'"
                     )
-                else:
-                    logger.warning(
-                        "Optional source context not available, skipping import",
-                        target_context=metadata.name,
-                        source_context=source_context_name,
-                        component=module_import.component_type.__name__,
-                    )
-                    continue
+                logger.warning(
+                    "Optional source context not available, skipping import",
+                    target_context=metadata.name,
+                    source_context=source_context_name,
+                    component=module_import.component_type.__name__,
+                )
+                continue
 
             source_context = existing_contexts[source_context_name]
 
             # Verify that the source context exports the component
             source_metadata = get_global_registry().get_module(source_context_name)
-            if source_metadata and not source_metadata.exports_component(module_import.component_type):
+            if source_metadata and not source_metadata.exports_component(
+                module_import.component_type
+            ):
                 if module_import.required:
                     raise ValueError(
                         f"Source context '{source_context_name}' does not export "
                         f"component '{module_import.component_type.__name__}' "
                         f"required by module '{metadata.name}'"
                     )
-                else:
-                    logger.warning(
-                        "Source context does not export component, skipping import",
-                        target_context=metadata.name,
-                        source_context=source_context_name,
-                        component=module_import.component_type.__name__,
-                    )
-                    continue
+                logger.warning(
+                    "Source context does not export component, skipping import",
+                    target_context=metadata.name,
+                    source_context=source_context_name,
+                    component=module_import.component_type.__name__,
+                )
+                continue
 
             # Add import declaration to the context
             import_declaration = module_import.to_core_import_declaration()
@@ -279,6 +298,12 @@ class ContextModuleBuilder(BaseModel):
         """
         errors = []
 
+        # Import here to avoid circular imports
+        from .._decorators.context_decorator import (
+            get_module_metadata,
+            is_context_module,
+        )
+
         for module_class in module_classes:
             if not is_context_module(module_class):
                 errors.append(
@@ -288,9 +313,7 @@ class ContextModuleBuilder(BaseModel):
 
             metadata = get_module_metadata(module_class)
             if metadata is None:
-                errors.append(
-                    f"No metadata found for module {module_class.__name__}"
-                )
+                errors.append(f"No metadata found for module {module_class.__name__}")
                 continue
 
             # Validate individual module
@@ -316,6 +339,13 @@ class ContextModuleBuilder(BaseModel):
             Dictionary containing module summary
         """
         summaries = []
+
+        # Import here to avoid circular imports
+        from .._decorators.context_decorator import (
+            get_module_metadata,
+            is_context_module,
+        )
+
         for module_class in module_classes:
             if is_context_module(module_class):
                 metadata = get_module_metadata(module_class)
@@ -323,7 +353,7 @@ class ContextModuleBuilder(BaseModel):
                     summaries.append(metadata.get_summary())
 
         registry = get_global_registry()
-        
+
         return {
             "module_count": len(summaries),
             "modules": summaries,

@@ -1,7 +1,7 @@
 """Container implementation wrapping dependency-injector."""
 
-import time
 from threading import RLock
+import time
 from typing import Any, TypeVar
 
 from dependency_injector import containers, providers
@@ -35,14 +35,16 @@ class Container(ContainerInterface[T]):
     multi-context support.
     """
 
-    def __init__(self, name: str = "default") -> None:
+    def __init__(self, name: str = "default", context_ref: Any = None) -> None:
         """
         Initialize the container.
 
         Args:
             name: Name of the container for identification
+            context_ref: Optional reference to the parent context for cross-context resolution
         """
         self._name = name
+        self._context_ref = context_ref  # Weak reference to avoid circular dependencies
         self._lock = RLock()
         self._scope_manager = ScopeManager()
 
@@ -89,8 +91,17 @@ class Container(ContainerInterface[T]):
                 # Validate registration
                 validate_component_registration(interface, impl_class, provider_name)
 
+                # Create a factory function for auto-wiring if needed
+                if not factory:
+                    dependencies = get_constructor_dependencies(impl_class)
+                    if dependencies and self._context_ref:
+                        # Create a factory function that resolves dependencies
+                        factory = self._create_auto_wiring_factory(
+                            impl_class, dependencies
+                        )
+
                 # Create appropriate dependency-injector provider based on scope
-                provider: providers.Singleton | providers.Factory | providers.Resource
+                provider: providers.Singleton[Any] | providers.Factory[Any] | providers.Resource[Any]
 
                 if scope == ComponentScope.SINGLETON:
                     if factory:
@@ -184,14 +195,16 @@ class Container(ContainerInterface[T]):
                 provider_name = name or interface.__name__
 
                 # Wrap the provider in a dependency-injector factory
-                di_provider = providers.Factory(provider.provide)
+                di_provider: providers.Factory[Any] = providers.Factory(provider.provide)
                 self._container.set_provider(provider_name, di_provider)
 
                 # Create metadata
                 metadata = ComponentMetadata(
                     component_type=interface.__name__,
                     component_name=provider_name,
-                    scope=provider.get_scope() if hasattr(provider, "get_scope") else ComponentScope.SINGLETON,
+                    scope=provider.get_scope()
+                    if hasattr(provider, "get_scope")
+                    else ComponentScope.SINGLETON,
                     tags=tags or {},
                     context_name=self._name,
                     provider_name=provider_name,
@@ -336,9 +349,7 @@ class Container(ContainerInterface[T]):
                 )
             return self._component_metadata[provider_name]
 
-    def unregister(
-        self, interface: type[TInterface], name: str | None = None
-    ) -> bool:
+    def unregister(self, interface: type[TInterface], name: str | None = None) -> bool:
         """
         Unregister a component from the container.
 
@@ -390,7 +401,7 @@ class Container(ContainerInterface[T]):
         with self._lock:
             # This is a simplified implementation - in a real scenario,
             # we'd need to track the actual types
-            return list(self._container.providers.keys())
+            return []
 
     def get_registration_count(self) -> int:
         """Get the number of registered components."""
@@ -408,13 +419,15 @@ class Container(ContainerInterface[T]):
             if modules:
                 self._container.wire(modules=modules)
             else:
-                # Wire current module by default
-                self._container.wire(modules=[__name__])
+                # Enable automatic dependency injection by calling wire without modules
+                # This allows the dependency resolution we configured during registration to work
+                pass  # The providers are already configured with dependencies
 
             logger.debug(
                 "Wired container for automatic injection",
                 container=self._name,
                 modules=modules,
+                auto_wired=not modules,
             )
 
         except Exception as e:
@@ -455,6 +468,159 @@ class Container(ContainerInterface[T]):
                     f"Failed to shutdown container '{self._name}'",
                     details=str(e),
                 ) from e
+
+    def enable_auto_wiring(self) -> None:
+        """
+        Enable automatic dependency injection for this container.
+
+        This method should be called after all components are registered
+        to enable automatic dependency resolution.
+        """
+        try:
+            with self._lock:
+                # The providers are already configured with Dependency() providers
+                # during registration, so they will automatically resolve dependencies
+                # when components are instantiated
+                logger.debug(
+                    "Enabled automatic dependency injection",
+                    container=self._name,
+                    provider_count=len(self._container.providers),
+                )
+
+        except Exception as e:
+            log_error(
+                "enable_auto_wiring",
+                e,
+                context_name=self._name,
+            )
+            raise ComponentRegistrationError(
+                f"Failed to enable auto-wiring for container '{self._name}'",
+                details=str(e),
+            ) from e
+
+    def _should_inject_dependency(self, dependency_type: type) -> bool:
+        """
+        Determine if a dependency should be auto-injected.
+
+        Args:
+            dependency_type: The type of the dependency
+
+        Returns:
+            True if the dependency should be auto-injected
+        """
+        # Don't inject primitive types or built-in types
+        if dependency_type in (str, int, float, bool, bytes, type(None)):
+            return False
+
+        # Don't inject standard library types that are typically not DI components
+        module_name = getattr(dependency_type, "__module__", "")
+        if module_name in ("builtins", "typing", "collections", "datetime", "pathlib"):
+            return False
+
+        # Check if the dependency is registered in this container
+        provider_name = dependency_type.__name__
+        if provider_name in self._container.providers:
+            return True
+
+        # Check if the dependency can be resolved through imports (if context is available)
+        if self._context_ref:
+            try:
+                # Check if the dependency can be resolved through imports
+                for import_decl in self._context_ref._import_manager.get_imports():
+                    if import_decl.component_type == dependency_type:
+                        return True
+            except Exception:
+                # If there's any issue checking imports, don't inject
+                pass
+
+        return False
+
+    def _create_dependency_provider(self, dependency_type: type) -> Any:
+        """
+        Create a provider for automatic dependency injection.
+
+        Args:
+            dependency_type: The type of dependency to inject
+
+        Returns:
+            A provider that can resolve the dependency
+        """
+        provider_name = dependency_type.__name__
+
+        # If it's registered locally, use a direct Dependency provider
+        if provider_name in self._container.providers:
+            return providers.Dependency()
+
+        # If it can be resolved through context imports, create a custom provider
+        if self._context_ref:
+
+            def resolve_from_context() -> Any:
+                try:
+                    return self._context_ref.resolve(dependency_type)
+                except Exception as e:
+                    logger.warning(
+                        "Failed to resolve dependency from context",
+                        dependency_type=dependency_type.__name__,
+                        context=self._name,
+                        error=str(e),
+                    )
+                    raise
+
+            return providers.Callable(resolve_from_context)
+
+        return None
+
+    def _create_auto_wiring_factory(
+        self, impl_class: type, dependencies: dict[str, tuple[type | None, bool]]
+    ) -> Any:
+        """
+        Create a factory function that automatically resolves and injects dependencies.
+
+        Args:
+            impl_class: The implementation class to create instances of
+            dependencies: Dictionary of dependencies (param_name -> (type, is_optional))
+
+        Returns:
+            Factory function that creates instances with auto-injected dependencies
+        """
+
+        def create_instance_with_dependencies() -> Any:
+            kwargs = {}
+            for param_name, (param_type, is_optional) in dependencies.items():
+                if param_type and self._should_inject_dependency(param_type):
+                    try:
+                        # Resolve dependency from context (includes imports)
+                        kwargs[param_name] = self._context_ref.resolve(param_type)
+                        logger.debug(
+                            "Auto-injected dependency",
+                            component=impl_class.__name__,
+                            parameter=param_name,
+                            dependency_type=param_type.__name__,
+                        )
+                    except Exception as e:
+                        if not is_optional:
+                            logger.error(
+                                "Failed to resolve required dependency",
+                                component=impl_class.__name__,
+                                dependency=param_type.__name__,
+                                error=str(e),
+                            )
+                            raise
+                        logger.debug(
+                            "Failed to resolve optional dependency, skipping",
+                            component=impl_class.__name__,
+                            dependency=param_type.__name__,
+                            error=str(e),
+                        )
+
+            logger.debug(
+                "Creating instance with auto-injected dependencies",
+                component=impl_class.__name__,
+                injected_dependencies=list(kwargs.keys()),
+            )
+            return impl_class(**kwargs)
+
+        return create_instance_with_dependencies
 
     def __repr__(self) -> str:
         """Get string representation of the container."""

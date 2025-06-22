@@ -1,7 +1,7 @@
 """Context interface for multi-container dependency injection."""
 
 from abc import ABC, abstractmethod
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from .container_interface import ContainerInterface
 
@@ -18,7 +18,7 @@ class ContextInterface(ABC):
     """
 
     @abstractmethod
-    def get_container(self, name: str | None = None) -> ContainerInterface:
+    def get_container(self, name: str | None = None) -> ContainerInterface[TInterface]:
         """
         Get a container from this context.
 
@@ -48,7 +48,7 @@ class ContextInterface(ABC):
         self,
         interface: type[TInterface],
         implementation: type[TInterface] | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """
         Register a component in this context.

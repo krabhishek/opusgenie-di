@@ -53,8 +53,6 @@ class ContainerError(DIError):
 class ContextError(DIError):
     """Base exception for context-related errors."""
 
-    pass
-
 
 class ComponentRegistrationError(DIError):
     """Exception for component registration errors."""
@@ -166,7 +164,9 @@ class ModuleError(DIError):
         context_name: str | None = None,
         operation: str | None = None,
     ) -> None:
-        super().__init__(message, details, context_name, operation or "module_operation")
+        super().__init__(
+            message, details, context_name, operation or "module_operation"
+        )
         self.module_name = module_name
 
 

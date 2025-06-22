@@ -40,7 +40,9 @@ def get_primary_type(type_hint: Any) -> type | None:
         non_none_types = extract_non_none_types(type_hint)
         return non_none_types[0] if non_none_types else None
 
-    return type_hint if type_hint is not type(None) else None
+    if type_hint is not type(None) and inspect.isclass(type_hint):
+        return type_hint
+    return None
 
 
 def is_optional_type(type_hint: Any) -> bool:
@@ -60,7 +62,7 @@ def get_constructor_dependencies(cls: type) -> dict[str, tuple[type | None, bool
         Dictionary mapping parameter names to (type, is_optional) tuples.
     """
     try:
-        signature = inspect.signature(cls.__init__)
+        signature = inspect.signature(cls)
         dependencies = {}
 
         for param_name, param in signature.parameters.items():
@@ -102,7 +104,7 @@ def get_constructor_dependencies(cls: type) -> dict[str, tuple[type | None, bool
 def get_type_name(type_hint: Any) -> str:
     """Get a string representation of a type hint."""
     if hasattr(type_hint, "__name__"):
-        return type_hint.__name__
+        return str(type_hint.__name__)
     return str(type_hint)
 
 
@@ -113,10 +115,7 @@ def is_concrete_type(type_hint: Any) -> bool:
             return False
 
         # Check if it's a class and has __init__
-        if inspect.isclass(type_hint) and hasattr(type_hint, "__init__"):
-            return True
-
-        return False
+        return inspect.isclass(type_hint) and hasattr(type_hint, "__init__")
     except Exception:
         return False
 

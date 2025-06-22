@@ -1,8 +1,9 @@
 """General helper utilities for the dependency injection system."""
 
 import asyncio
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -38,7 +39,6 @@ def run_async_in_sync(coro: Any) -> Any:
         # If we get here, there's already a running loop
         # We can't use asyncio.run(), so we need to create a new task
         import concurrent.futures
-        import threading
 
         # Run in a separate thread to avoid blocking the current loop
         def run_in_thread() -> Any:
@@ -136,10 +136,9 @@ def get_class_name(cls: type | Any) -> str:
     """
     if hasattr(cls, "__name__"):
         return cls.__name__
-    elif hasattr(cls, "__class__"):
+    if hasattr(cls, "__class__"):
         return cls.__class__.__name__
-    else:
-        return str(cls)
+    return str(cls)
 
 
 def get_module_name(cls: type | Any) -> str:
@@ -154,10 +153,9 @@ def get_module_name(cls: type | Any) -> str:
     """
     if hasattr(cls, "__module__"):
         return cls.__module__
-    elif hasattr(cls, "__class__") and hasattr(cls.__class__, "__module__"):
+    if hasattr(cls, "__class__") and hasattr(cls.__class__, "__module__"):
         return cls.__class__.__module__
-    else:
-        return "unknown"
+    return "unknown"
 
 
 def create_unique_key(*parts: Any) -> str:

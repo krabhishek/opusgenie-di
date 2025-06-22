@@ -137,9 +137,7 @@ def detect_component_layer(cls: type) -> ComponentLayer | None:
     return None
 
 
-def enhance_component_tags(
-    cls: type, existing_tags: dict[str, str]
-) -> dict[str, str]:
+def enhance_component_tags(cls: type, existing_tags: dict[str, str]) -> dict[str, str]:
     """
     Enhance component tags with auto-detected information.
 
@@ -163,7 +161,9 @@ def enhance_component_tags(
             enhanced_tags["layer"] = detected_layer.value
 
     # Add base classes information
-    base_classes = [base.__name__ for base in cls.__bases__ if base.__name__ != "object"]
+    base_classes = [
+        base.__name__ for base in cls.__bases__ if base.__name__ != "object"
+    ]
     if base_classes:
         enhanced_tags["base_classes"] = ",".join(base_classes)
 
@@ -190,9 +190,7 @@ def validate_decorator_target(cls: type, decorator_name: str) -> None:
         )
 
     if not hasattr(cls, "__name__"):
-        raise ValueError(
-            f"@{decorator_name} target must have a __name__ attribute"
-        )
+        raise ValueError(f"@{decorator_name} target must have a __name__ attribute")
 
     logger.debug(
         "Validated decorator target",
@@ -245,5 +243,4 @@ def get_decorator_signature(decorator_name: str, **options: Any) -> str:
 
     if option_strs:
         return f"@{decorator_name}({', '.join(option_strs)})"
-    else:
-        return f"@{decorator_name}"
+    return f"@{decorator_name}"

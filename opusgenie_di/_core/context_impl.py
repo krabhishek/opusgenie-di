@@ -1,7 +1,7 @@
 """Context implementation for multi-container dependency injection."""
 
-import time
 from threading import RLock
+import time
 from typing import Any, TypeVar
 from weakref import WeakSet
 
@@ -86,7 +86,7 @@ class ImportManager:
         """
         self._context = context
         self._imports: dict[str, ImportDeclaration] = {}
-        self._source_contexts: dict[str, "Context"] = {}
+        self._source_contexts: dict[str, Context] = {}
 
     def add_import(self, declaration: ImportDeclaration) -> None:
         """
@@ -121,9 +121,7 @@ class ImportManager:
             source_context=context_name,
         )
 
-    def resolve_import(
-        self, component_type: type, name: str | None = None
-    ) -> Any:
+    def resolve_import(self, component_type: type[T], name: str | None = None) -> T:
         """
         Resolve a component from imports.
 
@@ -171,7 +169,7 @@ class ImportManager:
         # Resolve from source context
         try:
             start_time = time.time()
-            instance = source_context.resolve(component_type, matching_import.name)
+            instance: T = source_context.resolve(component_type, matching_import.name)
             resolution_time_ms = (time.time() - start_time) * 1000
 
             log_import_resolution(
@@ -237,8 +235,8 @@ class Context(ContextInterface):
         self._lock = RLock()
         self._child_contexts: WeakSet[Context] = WeakSet()
 
-        # Create underlying container
-        self._container = Container(name)
+        # Create underlying container with reference to this context
+        self._container: Container[Any] = Container(name, context_ref=self)
 
         # Initialize import manager
         self._import_manager = ImportManager(self)
@@ -274,7 +272,7 @@ class Context(ContextInterface):
         """Get the parent context."""
         return self._parent
 
-    def get_container(self, name: str | None = None) -> Container:
+    def get_container(self, name: str | None = None) -> Container[Any]:
         """
         Get the container from this context.
 
@@ -302,11 +300,7 @@ class Context(ContextInterface):
         self,
         interface: type[TInterface],
         implementation: type[TInterface] | None = None,
-        *,
-        scope: ComponentScope = ComponentScope.SINGLETON,
-        name: str | None = None,
-        tags: dict[str, Any] | None = None,
-        factory: Any = None,
+        **kwargs: Any,
     ) -> None:
         """
         Register a component in this context.
@@ -319,6 +313,12 @@ class Context(ContextInterface):
             tags: Optional component tags
             factory: Optional factory function
         """
+        # Extract parameters from kwargs with defaults
+        scope = kwargs.get('scope', ComponentScope.SINGLETON)
+        name = kwargs.get('name')
+        tags = kwargs.get('tags')
+        factory = kwargs.get('factory')
+
         try:
             with self._lock:
                 self._container.register(
@@ -375,7 +375,7 @@ class Context(ContextInterface):
             with self._lock:
                 # Try to resolve from this context's container
                 if self._container.is_registered(interface, name):
-                    instance = self._container.resolve(interface, name)
+                    instance: TInterface = self._container.resolve(interface, name)
                     resolution_time_ms = (time.time() - start_time) * 1000
 
                     emit_event(
@@ -393,7 +393,7 @@ class Context(ContextInterface):
 
                 # Try to resolve from imports
                 try:
-                    instance = self._import_manager.resolve_import(interface, name)
+                    import_instance: TInterface = self._import_manager.resolve_import(interface, name)
                     resolution_time_ms = (time.time() - start_time) * 1000
 
                     emit_event(
@@ -407,7 +407,7 @@ class Context(ContextInterface):
                         },
                     )
 
-                    return instance
+                    return import_instance
 
                 except ImportError:
                     # Import resolution failed, continue to parent context
@@ -606,6 +606,41 @@ class Context(ContextInterface):
                     for decl in self._import_manager.get_imports()
                 ],
             }
+
+    def enable_auto_wiring(self) -> None:
+        """
+        Enable automatic dependency injection for this context.
+
+        This method should be called after all components are registered
+        to enable automatic dependency resolution within this context.
+        """
+        try:
+            with self._lock:
+                if self._auto_wire:
+                    self._container.enable_auto_wiring()
+                    logger.debug(
+                        "Enabled auto-wiring for context",
+                        context=self._name,
+                        component_count=self._container.get_registration_count(),
+                    )
+                else:
+                    logger.debug(
+                        "Auto-wiring disabled for context",
+                        context=self._name,
+                    )
+
+        except Exception as e:
+            log_error(
+                "enable_context_auto_wiring",
+                e,
+                context_name=self._name,
+            )
+            raise ContextError(
+                f"Failed to enable auto-wiring for context '{self._name}'",
+                details=str(e),
+                context_name=self._name,
+                operation="enable_auto_wiring",
+            ) from e
 
     def _register_child_context(self, child_context: "Context") -> None:
         """

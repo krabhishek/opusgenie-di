@@ -131,7 +131,7 @@ class ImportCollection(BaseModel):
         errors = []
 
         # Check for conflicts (same component type from different contexts)
-        component_sources = {}
+        component_sources: dict[str, str] = {}
         for imp in self.imports:
             component_name = imp.component_type.__name__
             if component_name in component_sources:
@@ -168,6 +168,6 @@ class ImportCollection(BaseModel):
         if isinstance(item, str):
             # Check by import key
             return any(imp.get_import_key() == item for imp in self.imports)
-        elif isinstance(item, ModuleContextImport):
+        if isinstance(item, ModuleContextImport):
             return item in self.imports
         return False

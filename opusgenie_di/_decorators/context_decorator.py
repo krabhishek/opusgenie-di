@@ -14,7 +14,6 @@ from .._registry import ModuleMetadata, register_module
 from .._utils import get_logger, log_error, validate_module_name
 from .decorator_options import ContextOptions
 from .decorator_utils import (
-    create_metadata_dict,
     get_decorator_signature,
     validate_decorator_target,
 )
@@ -123,10 +122,10 @@ def og_context(
             register_module(metadata)
 
             # Add module-specific attributes to the class
-            setattr(cls, "_og_module_metadata", metadata)
-            setattr(cls, "_og_module_options", options)
-            setattr(cls, "_og_import_collection", import_collection)
-            setattr(cls, "_og_provider_collection", provider_collection)
+            cls._og_module_metadata = metadata
+            cls._og_module_options = options
+            cls._og_import_collection = import_collection
+            cls._og_provider_collection = provider_collection
 
             # Add convenience methods to the class
             _add_module_methods(cls, metadata)
@@ -188,55 +187,55 @@ def _add_module_methods(cls: type[Any], metadata: ModuleMetadata) -> None:
         metadata: Module metadata
     """
 
-    def get_module_name(self) -> str:
+    def get_module_name(self: Any) -> str:
         """Get the module name."""
         return metadata.name
 
-    def get_module_version(self) -> str:
+    def get_module_version(self: Any) -> str:
         """Get the module version."""
         return metadata.version
 
-    def get_module_description(self) -> str | None:
+    def get_module_description(self: Any) -> str | None:
         """Get the module description."""
         return metadata.description
 
-    def get_imports(self) -> list[ModuleContextImport]:
+    def get_imports(self: Any) -> list[ModuleContextImport]:
         """Get the list of module imports."""
         return metadata.imports.imports
 
-    def get_exports(self) -> list[type]:
+    def get_exports(self: Any) -> list[type]:
         """Get the list of module exports."""
         return metadata.exports
 
-    def get_providers(self) -> list[ProviderConfig]:
+    def get_providers(self: Any) -> list[ProviderConfig]:
         """Get the list of provider configurations."""
         return metadata.providers.providers
 
-    def get_module_metadata(self) -> ModuleMetadata:
+    def get_module_metadata(self: Any) -> ModuleMetadata:
         """Get the complete module metadata."""
         return metadata
 
-    def has_export(self, component_type: type) -> bool:
+    def has_export(self: Any, component_type: type) -> bool:
         """Check if the module exports a specific component type."""
         return metadata.exports_component(component_type)
 
-    def has_import(self, component_type: type) -> bool:
+    def has_import(self: Any, component_type: type) -> bool:
         """Check if the module imports a specific component type."""
         return metadata.imports_component(component_type)
 
-    def has_provider(self, component_type: type) -> bool:
+    def has_provider(self: Any, component_type: type) -> bool:
         """Check if the module provides a specific component type."""
         return metadata.provides_component(component_type)
 
-    def get_dependencies(self) -> list[str]:
+    def get_dependencies(self: Any) -> list[str]:
         """Get the list of context dependencies."""
         return metadata.get_dependencies()
 
-    def validate_module(self) -> list[str]:
+    def validate_module(self: Any) -> list[str]:
         """Validate the module configuration."""
         return metadata.validate_module()
 
-    def get_summary(self) -> dict[str, Any]:
+    def get_summary(self: Any) -> dict[str, Any]:
         """Get a summary of the module."""
         return metadata.get_summary()
 
@@ -303,6 +302,7 @@ def get_all_context_modules() -> list[ModuleMetadata]:
         List of all module metadata instances
     """
     from .._registry import get_all_modules
+
     return get_all_modules()
 
 
@@ -314,4 +314,5 @@ def validate_all_module_dependencies() -> list[str]:
         List of validation errors
     """
     from .._registry import validate_module_dependencies
+
     return validate_module_dependencies()

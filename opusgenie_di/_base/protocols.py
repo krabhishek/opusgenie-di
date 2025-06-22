@@ -1,9 +1,12 @@
 """Protocol definitions for dependency injection components."""
 
 from abc import abstractmethod
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
 
 from .enums import ComponentScope, LifecycleStage
+
+# Type variable for generic protocols (covariant for Protocol)
+T = TypeVar("T", covariant=True)
 
 
 @runtime_checkable
@@ -39,11 +42,9 @@ class InjectableProtocol(Protocol):
     as a dependency in the injection system.
     """
 
-    pass
-
 
 @runtime_checkable
-class ComponentProviderProtocol(Protocol):
+class ComponentProviderProtocol(Protocol, Generic[T]):
     """
     Protocol for component providers.
 
@@ -52,7 +53,7 @@ class ComponentProviderProtocol(Protocol):
     """
 
     @abstractmethod
-    def provide(self) -> Any:
+    def provide(self) -> T:
         """Create and return a component instance."""
         ...
 

@@ -1,7 +1,8 @@
 """Lifecycle hooks for component lifecycle management."""
 
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 from .._base import LifecycleStage
 from .._utils import get_logger

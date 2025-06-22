@@ -1,14 +1,14 @@
 """Provider interface for component creation."""
 
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar
+from typing import Any, Generic, TypeVar
 
 from .._base import ComponentScope
 
 T = TypeVar("T")
 
 
-class ProviderInterface(ABC):
+class ProviderInterface(ABC, Generic[T]):
     """
     Abstract base class for component providers.
 
@@ -142,11 +142,11 @@ class ComponentProvider(ProviderInterface[T]):
         """Dispose of a component instance created by this provider."""
         # Check if instance has cleanup methods
         if hasattr(instance, "cleanup"):
-            if callable(getattr(instance, "cleanup")):
-                instance.cleanup()  # type: ignore
+            if callable(instance.cleanup):
+                instance.cleanup()
         elif hasattr(instance, "dispose"):
-            if callable(getattr(instance, "dispose")):
-                instance.dispose()  # type: ignore
+            if callable(instance.dispose):
+                instance.dispose()
         elif hasattr(instance, "close"):
-            if callable(getattr(instance, "close")):
-                instance.close()  # type: ignore
+            if callable(instance.close):
+                instance.close()

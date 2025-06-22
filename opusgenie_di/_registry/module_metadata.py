@@ -4,8 +4,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from .._modules.import_declaration import ImportCollection, ModuleContextImport
-from .._modules.provider_config import ProviderCollection, ProviderConfig
+from .._modules.import_declaration import ImportCollection
+from .._modules.provider_config import ProviderCollection
 
 
 class ModuleMetadata(BaseModel):

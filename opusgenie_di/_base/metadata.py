@@ -60,7 +60,9 @@ class ComponentMetadata(BaseModel):
     )
 
     # Registration info
-    context_name: str = Field(description="Name of the context where component is registered")
+    context_name: str = Field(
+        description="Name of the context where component is registered"
+    )
     provider_name: str | None = Field(
         default=None, description="Name of the provider used to create this component"
     )

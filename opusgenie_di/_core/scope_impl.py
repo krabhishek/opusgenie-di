@@ -1,9 +1,9 @@
 """Scope manager implementation for component lifecycle management."""
 
 import asyncio
-import threading
 from collections import defaultdict
 from collections.abc import Callable, Coroutine
+import threading
 from typing import Any, TypeVar
 from weakref import WeakSet
 
@@ -53,18 +53,17 @@ class ScopeManager(ScopeManagerInterface):
             with self._lock:
                 if scope == ComponentScope.SINGLETON:
                     return self._get_or_create_singleton(key, factory)
-                elif scope == ComponentScope.TRANSIENT:
+                if scope == ComponentScope.TRANSIENT:
                     return self._create_transient(factory)
-                elif scope == ComponentScope.SCOPED:
+                if scope == ComponentScope.SCOPED:
                     return self._get_or_create_scoped(key, factory)
-                elif scope == ComponentScope.FACTORY:
+                if scope == ComponentScope.FACTORY:
                     return self._create_factory(factory)
-                else:
-                    raise ScopeError(
-                        f"Unsupported scope: {scope}",
-                        scope=scope.value,
-                        details=f"Scope {scope.value} is not supported by this manager",
-                    )
+                raise ScopeError(
+                    f"Unsupported scope: {scope}",
+                    scope=scope.value,
+                    details=f"Scope {scope.value} is not supported by this manager",
+                )
 
         except Exception as e:
             log_error(
@@ -100,18 +99,17 @@ class ScopeManager(ScopeManagerInterface):
             # to avoid blocking the event loop
             if scope == ComponentScope.SINGLETON:
                 return await self._get_or_create_singleton_async(key, factory)
-            elif scope == ComponentScope.TRANSIENT:
+            if scope == ComponentScope.TRANSIENT:
                 return await self._create_transient_async(factory)
-            elif scope == ComponentScope.SCOPED:
+            if scope == ComponentScope.SCOPED:
                 return await self._get_or_create_scoped_async(key, factory)
-            elif scope == ComponentScope.FACTORY:
+            if scope == ComponentScope.FACTORY:
                 return await self._create_factory_async(factory)
-            else:
-                raise ScopeError(
-                    f"Unsupported scope: {scope}",
-                    scope=scope.value,
-                    details=f"Scope {scope.value} is not supported by this manager",
-                )
+            raise ScopeError(
+                f"Unsupported scope: {scope}",
+                scope=scope.value,
+                details=f"Scope {scope.value} is not supported by this manager",
+            )
 
         except Exception as e:
             log_error(
@@ -181,8 +179,11 @@ class ScopeManager(ScopeManagerInterface):
         with self._lock:
             if scope == ComponentScope.SINGLETON:
                 return key in self._singletons
-            elif scope == ComponentScope.SCOPED:
-                return any(key in scoped_dict for scoped_dict in self._scoped_instances.values())
+            if scope == ComponentScope.SCOPED:
+                return any(
+                    key in scoped_dict
+                    for scoped_dict in self._scoped_instances.values()
+                )
             # Transient and factory instances are not cached
             return False
 
@@ -199,12 +200,16 @@ class ScopeManager(ScopeManagerInterface):
         with self._lock:
             if scope is None:
                 total = len(self._singletons)
-                total += sum(len(scoped_dict) for scoped_dict in self._scoped_instances.values())
+                total += sum(
+                    len(scoped_dict) for scoped_dict in self._scoped_instances.values()
+                )
                 return total
-            elif scope == ComponentScope.SINGLETON:
+            if scope == ComponentScope.SINGLETON:
                 return len(self._singletons)
-            elif scope == ComponentScope.SCOPED:
-                return sum(len(scoped_dict) for scoped_dict in self._scoped_instances.values())
+            if scope == ComponentScope.SCOPED:
+                return sum(
+                    len(scoped_dict) for scoped_dict in self._scoped_instances.values()
+                )
             # Transient and factory instances are not cached
             return 0
 
@@ -228,12 +233,14 @@ class ScopeManager(ScopeManagerInterface):
     def _get_or_create_singleton(self, key: str, factory: Callable[[], T]) -> T:
         """Get or create a singleton instance."""
         if key in self._singletons:
-            return self._singletons[key]
+            return self._singletons[key]  # type: ignore[no-any-return]
 
         instance = factory()
         self._singletons[key] = instance
         self._track_disposable(instance)
-        logger.debug("Created singleton instance", key=key, instance_type=type(instance).__name__)
+        logger.debug(
+            "Created singleton instance", key=key, instance_type=type(instance).__name__
+        )
         return instance
 
     async def _get_or_create_singleton_async(
@@ -258,21 +265,31 @@ class ScopeManager(ScopeManagerInterface):
 
             self._singletons[key] = instance
             self._track_disposable(instance)
-            logger.debug("Created singleton instance async", key=key, instance_type=type(instance).__name__)
+            logger.debug(
+                "Created singleton instance async",
+                key=key,
+                instance_type=type(instance).__name__,
+            )
             return instance
 
     def _create_transient(self, factory: Callable[[], T]) -> T:
         """Create a transient instance."""
         instance = factory()
         self._track_disposable(instance)
-        logger.debug("Created transient instance", instance_type=type(instance).__name__)
+        logger.debug(
+            "Created transient instance", instance_type=type(instance).__name__
+        )
         return instance
 
-    async def _create_transient_async(self, factory: Callable[[], Coroutine[Any, Any, T]]) -> T:
+    async def _create_transient_async(
+        self, factory: Callable[[], Coroutine[Any, Any, T]]
+    ) -> T:
         """Asynchronously create a transient instance."""
         instance = await factory()
         self._track_disposable(instance)
-        logger.debug("Created transient instance async", instance_type=type(instance).__name__)
+        logger.debug(
+            "Created transient instance async", instance_type=type(instance).__name__
+        )
         return instance
 
     def _get_or_create_scoped(self, key: str, factory: Callable[[], T]) -> T:
@@ -333,11 +350,15 @@ class ScopeManager(ScopeManagerInterface):
         logger.debug("Created factory instance", instance_type=type(instance).__name__)
         return instance
 
-    async def _create_factory_async(self, factory: Callable[[], Coroutine[Any, Any, T]]) -> T:
+    async def _create_factory_async(
+        self, factory: Callable[[], Coroutine[Any, Any, T]]
+    ) -> T:
         """Asynchronously create an instance using factory method."""
         instance = await factory()
         self._track_disposable(instance)
-        logger.debug("Created factory instance async", instance_type=type(instance).__name__)
+        logger.debug(
+            "Created factory instance async", instance_type=type(instance).__name__
+        )
         return instance
 
     def _track_disposable(self, instance: Any) -> None:
@@ -348,7 +369,10 @@ class ScopeManager(ScopeManagerInterface):
     def _has_disposal_methods(self, instance: Any) -> bool:
         """Check if an instance has disposal methods."""
         disposal_methods = ["cleanup", "dispose", "close", "shutdown"]
-        return any(hasattr(instance, method) and callable(getattr(instance, method)) for method in disposal_methods)
+        return any(
+            hasattr(instance, method) and callable(getattr(instance, method))
+            for method in disposal_methods
+        )
 
     def _dispose_instances(self, instances: Any) -> None:
         """Dispose of multiple instances."""

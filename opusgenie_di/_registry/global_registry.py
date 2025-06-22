@@ -72,7 +72,7 @@ class GlobalRegistry:
                 return False
 
             metadata = self._modules[module_name]
-            
+
             # Remove from registries
             del self._modules[module_name]
             if metadata.module_class in self._modules_by_class:
@@ -289,7 +289,7 @@ class GlobalRegistry:
                     return
 
                 temp_visited.add(module_name)
-                
+
                 # Visit dependencies first
                 for dep in self._dependency_graph.get(module_name, []):
                     visit(dep)
@@ -323,7 +323,9 @@ class GlobalRegistry:
         with self._lock:
             return {
                 "module_count": len(self._modules),
-                "modules": [metadata.get_summary() for metadata in self._modules.values()],
+                "modules": [
+                    metadata.get_summary() for metadata in self._modules.values()
+                ],
                 "dependency_graph": dict(self._dependency_graph),
                 "circular_dependencies": self._detect_circular_dependencies(),
             }

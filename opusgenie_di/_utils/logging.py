@@ -22,7 +22,7 @@ structlog.configure(
 
 def get_logger(name: str) -> structlog.BoundLogger:
     """Get a structured logger for the given name."""
-    return structlog.get_logger(name)
+    return structlog.get_logger(name)  # type: ignore[no-any-return]
 
 
 # Create module-level logger

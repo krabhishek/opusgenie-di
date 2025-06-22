@@ -1,8 +1,9 @@
 """Event hooks for extensibility in the dependency injection system."""
 
 from collections import defaultdict
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 from .._utils import get_logger, log_error
 
