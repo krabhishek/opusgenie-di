@@ -1,0 +1,33 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+.pytest_cache/
+*.egg-info
+.ruff_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv
+
+# vs code
+.vscode/
+
+# Test coverage
+.coverage
+.coverage.*
+htmlcov
+coverage_html*
+
+# temp-workbench
+workbench/
+
+
+# docs
+site/
+
+# examples
+
+examples/

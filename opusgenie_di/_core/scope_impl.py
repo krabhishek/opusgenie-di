@@ -1,0 +1,399 @@
+"""Scope manager implementation for component lifecycle management."""
+
+import asyncio
+import threading
+from collections import defaultdict
+from collections.abc import Callable, Coroutine
+from typing import Any, TypeVar
+from weakref import WeakSet
+
+from .._base import ComponentScope
+from .._utils import get_logger, log_error
+from .exceptions import ScopeError
+from .scope_interface import ScopeManagerInterface
+
+T = TypeVar("T")
+
+logger = get_logger(__name__)
+
+
+class ScopeManager(ScopeManagerInterface):
+    """
+    Implementation of scope manager for component lifecycle management.
+
+    Manages component instances according to their configured scope,
+    providing proper caching and disposal strategies.
+    """
+
+    def __init__(self) -> None:
+        """Initialize the scope manager."""
+        self._lock = threading.RLock()
+        self._singletons: dict[str, Any] = {}
+        self._scoped_instances: dict[str, dict[str, Any]] = defaultdict(dict)
+        self._disposable_instances: WeakSet[Any] = WeakSet()
+
+    def get_or_create(
+        self,
+        key: str,
+        factory: Callable[[], T],
+        scope: ComponentScope,
+    ) -> T:
+        """
+        Get an existing instance or create a new one according to scope rules.
+
+        Args:
+            key: Unique key for the component instance
+            factory: Factory function to create new instances
+            scope: Component scope for lifecycle management
+
+        Returns:
+            Component instance
+        """
+        try:
+            with self._lock:
+                if scope == ComponentScope.SINGLETON:
+                    return self._get_or_create_singleton(key, factory)
+                elif scope == ComponentScope.TRANSIENT:
+                    return self._create_transient(factory)
+                elif scope == ComponentScope.SCOPED:
+                    return self._get_or_create_scoped(key, factory)
+                elif scope == ComponentScope.FACTORY:
+                    return self._create_factory(factory)
+                else:
+                    raise ScopeError(
+                        f"Unsupported scope: {scope}",
+                        scope=scope.value,
+                        details=f"Scope {scope.value} is not supported by this manager",
+                    )
+
+        except Exception as e:
+            log_error(
+                "get_or_create",
+                e,
+                component_type=None,
+            )
+            raise ScopeError(
+                f"Failed to get or create instance for key '{key}'",
+                scope=scope.value,
+                details=str(e),
+            ) from e
+
+    async def get_or_create_async(
+        self,
+        key: str,
+        factory: Callable[[], Coroutine[Any, Any, T]],
+        scope: ComponentScope,
+    ) -> T:
+        """
+        Asynchronously get an existing instance or create a new one.
+
+        Args:
+            key: Unique key for the component instance
+            factory: Async factory function to create new instances
+            scope: Component scope for lifecycle management
+
+        Returns:
+            Component instance
+        """
+        try:
+            # For async operations, we need to handle locking carefully
+            # to avoid blocking the event loop
+            if scope == ComponentScope.SINGLETON:
+                return await self._get_or_create_singleton_async(key, factory)
+            elif scope == ComponentScope.TRANSIENT:
+                return await self._create_transient_async(factory)
+            elif scope == ComponentScope.SCOPED:
+                return await self._get_or_create_scoped_async(key, factory)
+            elif scope == ComponentScope.FACTORY:
+                return await self._create_factory_async(factory)
+            else:
+                raise ScopeError(
+                    f"Unsupported scope: {scope}",
+                    scope=scope.value,
+                    details=f"Scope {scope.value} is not supported by this manager",
+                )
+
+        except Exception as e:
+            log_error(
+                "get_or_create_async",
+                e,
+                component_type=None,
+            )
+            raise ScopeError(
+                f"Failed to get or create instance async for key '{key}'",
+                scope=scope.value,
+                details=str(e),
+            ) from e
+
+    def clear_scope(self, scope: ComponentScope) -> None:
+        """
+        Clear all instances for a specific scope.
+
+        Args:
+            scope: Scope to clear
+        """
+        with self._lock:
+            if scope == ComponentScope.SINGLETON:
+                self._dispose_instances(self._singletons.values())
+                self._singletons.clear()
+                logger.debug("Cleared singleton scope")
+            elif scope == ComponentScope.SCOPED:
+                for scoped_dict in self._scoped_instances.values():
+                    self._dispose_instances(scoped_dict.values())
+                self._scoped_instances.clear()
+                logger.debug("Cleared scoped instances")
+            # Transient and factory instances are not cached, so nothing to clear
+
+    def clear_all(self) -> None:
+        """Clear all cached instances across all scopes."""
+        with self._lock:
+            # Dispose of all singleton instances
+            self._dispose_instances(self._singletons.values())
+            self._singletons.clear()
+
+            # Dispose of all scoped instances
+            for scoped_dict in self._scoped_instances.values():
+                self._dispose_instances(scoped_dict.values())
+            self._scoped_instances.clear()
+
+            logger.debug("Cleared all cached instances")
+
+    def dispose(self, instance: T) -> None:
+        """
+        Dispose of a component instance and clean up resources.
+
+        Args:
+            instance: Component instance to dispose
+        """
+        self._dispose_instance(instance)
+
+    def has_instance(self, key: str, scope: ComponentScope) -> bool:
+        """
+        Check if an instance exists for the given key and scope.
+
+        Args:
+            key: Instance key
+            scope: Component scope
+
+        Returns:
+            True if instance exists
+        """
+        with self._lock:
+            if scope == ComponentScope.SINGLETON:
+                return key in self._singletons
+            elif scope == ComponentScope.SCOPED:
+                return any(key in scoped_dict for scoped_dict in self._scoped_instances.values())
+            # Transient and factory instances are not cached
+            return False
+
+    def get_instance_count(self, scope: ComponentScope | None = None) -> int:
+        """
+        Get the number of cached instances.
+
+        Args:
+            scope: Optional scope to filter by, None for all scopes
+
+        Returns:
+            Number of cached instances
+        """
+        with self._lock:
+            if scope is None:
+                total = len(self._singletons)
+                total += sum(len(scoped_dict) for scoped_dict in self._scoped_instances.values())
+                return total
+            elif scope == ComponentScope.SINGLETON:
+                return len(self._singletons)
+            elif scope == ComponentScope.SCOPED:
+                return sum(len(scoped_dict) for scoped_dict in self._scoped_instances.values())
+            # Transient and factory instances are not cached
+            return 0
+
+    def get_scopes(self) -> list[ComponentScope]:
+        """
+        Get all scopes that have cached instances.
+
+        Returns:
+            List of scopes with instances
+        """
+        scopes = []
+        with self._lock:
+            if self._singletons:
+                scopes.append(ComponentScope.SINGLETON)
+            if any(self._scoped_instances.values()):
+                scopes.append(ComponentScope.SCOPED)
+        return scopes
+
+    # Private methods
+
+    def _get_or_create_singleton(self, key: str, factory: Callable[[], T]) -> T:
+        """Get or create a singleton instance."""
+        if key in self._singletons:
+            return self._singletons[key]
+
+        instance = factory()
+        self._singletons[key] = instance
+        self._track_disposable(instance)
+        logger.debug("Created singleton instance", key=key, instance_type=type(instance).__name__)
+        return instance
+
+    async def _get_or_create_singleton_async(
+        self, key: str, factory: Callable[[], Coroutine[Any, Any, T]]
+    ) -> T:
+        """Asynchronously get or create a singleton instance."""
+        # Check if instance already exists (non-blocking)
+        with self._lock:
+            if key in self._singletons:
+                return self._singletons[key]
+
+        # Create instance asynchronously
+        instance = await factory()
+
+        # Store the instance (with lock)
+        with self._lock:
+            # Double-check in case another coroutine created it
+            if key in self._singletons:
+                # Another coroutine beat us to it, dispose our instance and return the existing one
+                self._dispose_instance(instance)
+                return self._singletons[key]
+
+            self._singletons[key] = instance
+            self._track_disposable(instance)
+            logger.debug("Created singleton instance async", key=key, instance_type=type(instance).__name__)
+            return instance
+
+    def _create_transient(self, factory: Callable[[], T]) -> T:
+        """Create a transient instance."""
+        instance = factory()
+        self._track_disposable(instance)
+        logger.debug("Created transient instance", instance_type=type(instance).__name__)
+        return instance
+
+    async def _create_transient_async(self, factory: Callable[[], Coroutine[Any, Any, T]]) -> T:
+        """Asynchronously create a transient instance."""
+        instance = await factory()
+        self._track_disposable(instance)
+        logger.debug("Created transient instance async", instance_type=type(instance).__name__)
+        return instance
+
+    def _get_or_create_scoped(self, key: str, factory: Callable[[], T]) -> T:
+        """Get or create a scoped instance."""
+        # For now, use a default scope name. In a real implementation,
+        # this could be request-scoped, session-scoped, etc.
+        scope_name = "default"
+
+        if key in self._scoped_instances[scope_name]:
+            return self._scoped_instances[scope_name][key]
+
+        instance = factory()
+        self._scoped_instances[scope_name][key] = instance
+        self._track_disposable(instance)
+        logger.debug(
+            "Created scoped instance",
+            key=key,
+            scope=scope_name,
+            instance_type=type(instance).__name__,
+        )
+        return instance
+
+    async def _get_or_create_scoped_async(
+        self, key: str, factory: Callable[[], Coroutine[Any, Any, T]]
+    ) -> T:
+        """Asynchronously get or create a scoped instance."""
+        scope_name = "default"
+
+        # Check if instance already exists
+        with self._lock:
+            if key in self._scoped_instances[scope_name]:
+                return self._scoped_instances[scope_name][key]
+
+        # Create instance asynchronously
+        instance = await factory()
+
+        # Store the instance
+        with self._lock:
+            # Double-check in case another coroutine created it
+            if key in self._scoped_instances[scope_name]:
+                self._dispose_instance(instance)
+                return self._scoped_instances[scope_name][key]
+
+            self._scoped_instances[scope_name][key] = instance
+            self._track_disposable(instance)
+            logger.debug(
+                "Created scoped instance async",
+                key=key,
+                scope=scope_name,
+                instance_type=type(instance).__name__,
+            )
+            return instance
+
+    def _create_factory(self, factory: Callable[[], T]) -> T:
+        """Create an instance using factory method."""
+        instance = factory()
+        self._track_disposable(instance)
+        logger.debug("Created factory instance", instance_type=type(instance).__name__)
+        return instance
+
+    async def _create_factory_async(self, factory: Callable[[], Coroutine[Any, Any, T]]) -> T:
+        """Asynchronously create an instance using factory method."""
+        instance = await factory()
+        self._track_disposable(instance)
+        logger.debug("Created factory instance async", instance_type=type(instance).__name__)
+        return instance
+
+    def _track_disposable(self, instance: Any) -> None:
+        """Track an instance for disposal if it has disposal methods."""
+        if self._has_disposal_methods(instance):
+            self._disposable_instances.add(instance)
+
+    def _has_disposal_methods(self, instance: Any) -> bool:
+        """Check if an instance has disposal methods."""
+        disposal_methods = ["cleanup", "dispose", "close", "shutdown"]
+        return any(hasattr(instance, method) and callable(getattr(instance, method)) for method in disposal_methods)
+
+    def _dispose_instances(self, instances: Any) -> None:
+        """Dispose of multiple instances."""
+        for instance in instances:
+            self._dispose_instance(instance)
+
+    def _dispose_instance(self, instance: Any) -> None:
+        """Dispose of a single instance."""
+        try:
+            if hasattr(instance, "cleanup") and callable(instance.cleanup):
+                if asyncio.iscoroutinefunction(instance.cleanup):
+                    # Handle async cleanup
+                    try:
+                        loop = asyncio.get_running_loop()
+                        loop.create_task(instance.cleanup())
+                    except RuntimeError:
+                        # No event loop running, can't dispose async
+                        logger.warning(
+                            "Cannot dispose async instance without event loop",
+                            instance_type=type(instance).__name__,
+                        )
+                else:
+                    instance.cleanup()
+            elif hasattr(instance, "dispose") and callable(instance.dispose):
+                instance.dispose()
+            elif hasattr(instance, "close") and callable(instance.close):
+                instance.close()
+            elif hasattr(instance, "shutdown") and callable(instance.shutdown):
+                if asyncio.iscoroutinefunction(instance.shutdown):
+                    try:
+                        loop = asyncio.get_running_loop()
+                        loop.create_task(instance.shutdown())
+                    except RuntimeError:
+                        logger.warning(
+                            "Cannot shutdown async instance without event loop",
+                            instance_type=type(instance).__name__,
+                        )
+                else:
+                    instance.shutdown()
+
+            logger.debug("Disposed instance", instance_type=type(instance).__name__)
+
+        except Exception as e:
+            logger.warning(
+                "Error disposing instance",
+                instance_type=type(instance).__name__,
+                error=str(e),
+            )
