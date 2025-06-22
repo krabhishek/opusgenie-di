@@ -3,8 +3,8 @@
 from typing import Any
 
 from .._utils import get_logger
-from .event_hooks import EventHook, EventHookManager, HookFunction
-from .lifecycle_hooks import LifecycleHook, LifecycleHookFunction, LifecycleHookManager
+from .event_hooks import EventHook, HookFunction
+from .lifecycle_hooks import LifecycleHook, LifecycleHookFunction
 
 logger = get_logger(__name__)
 
@@ -19,8 +19,11 @@ class HookManager:
 
     def __init__(self) -> None:
         """Initialize the central hook manager."""
-        self._event_manager = EventHookManager()
-        self._lifecycle_manager = LifecycleHookManager()
+        from .event_hooks import get_hook_manager
+        from .lifecycle_hooks import get_lifecycle_hook_manager
+
+        self._event_manager = get_hook_manager()
+        self._lifecycle_manager = get_lifecycle_hook_manager()
 
     # Event hook methods
 

@@ -39,7 +39,7 @@ def _get_resolution_chain() -> list[str]:
     """Get the current resolution chain for this thread."""
     if not hasattr(_resolution_chain, "chain"):
         _resolution_chain.chain = []
-    return _resolution_chain.chain
+    return _resolution_chain.chain  # type: ignore[no-any-return]
 
 
 def _push_resolution(component_name: str) -> None:

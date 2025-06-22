@@ -5,7 +5,8 @@ from typing import Any
 from .._base import BaseComponent, ComponentScope
 from .._core import Context, reset_global_context
 from .._decorators import og_component
-from .._hooks import clear_all_hooks, set_hooks_enabled
+from .._hooks import clear_all_hooks_global as clear_all_hooks
+from .._hooks import set_hooks_enabled
 from .._registry import clear_global_registry
 from .._utils import get_logger
 

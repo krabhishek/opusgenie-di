@@ -303,11 +303,11 @@ class TestContextDecorator:
             pass
 
         # This should not raise if validation passes
-        try:
-            validate_all_module_dependencies()
-        except Exception:
+        import contextlib
+
+        with contextlib.suppress(Exception):
             # If validation fails, it should be for reasons other than our valid module
-            pass
+            validate_all_module_dependencies()
 
     def test_context_decoration_with_circular_references(self) -> None:
         """Test context decoration handles circular reference detection."""

@@ -12,6 +12,7 @@ from weakref import WeakValueDictionary
 
 from .._base import ComponentScope
 from .._utils import get_logger, log_error
+from .event_loop_manager import get_event_loop_manager, run_async_safely
 from .exceptions import ScopeError
 from .scope_interface import ScopeManagerInterface
 
@@ -31,14 +32,31 @@ class ScopeManager(ScopeManagerInterface):
     providing proper caching and disposal strategies.
     """
 
-    def __init__(self) -> None:
-        """Initialize the scope manager."""
+    def __init__(self, lifecycle_callback: Callable[..., None] | None = None) -> None:
+        """
+        Initialize the scope manager.
+
+        Args:
+            lifecycle_callback: Optional callback for lifecycle events.
+                                Called with (event_name, **kwargs)
+        """
         self._lock = threading.RLock()
         self._singletons: dict[str, Any] = {}
         self._scoped_instances: dict[str, dict[str, Any]] = defaultdict(dict)
         self._disposable_instances: WeakValueDictionary[int, Any] = (
             WeakValueDictionary()
         )
+        self._lifecycle_callback = lifecycle_callback
+
+    def _trigger_lifecycle_event(self, event: str, **kwargs: Any) -> None:
+        """Trigger a lifecycle event callback if configured."""
+        if self._lifecycle_callback is not None:
+            try:
+                self._lifecycle_callback(event, **kwargs)
+            except Exception as e:
+                logger.warning(
+                    "Error in lifecycle callback", event=event, error=str(e), **kwargs
+                )
 
     def get_or_create(
         self,
@@ -304,6 +322,15 @@ class ScopeManager(ScopeManagerInterface):
         logger.debug(
             "Created singleton instance", key=key, instance_type=type(instance).__name__
         )
+
+        # Trigger lifecycle event
+        self._trigger_lifecycle_event(
+            "instance_created",
+            component_type=type(instance).__name__,
+            scope=ComponentScope.SINGLETON,
+            key=key,
+        )
+
         return instance
 
     async def _get_or_create_singleton_async(
@@ -375,6 +402,16 @@ class ScopeManager(ScopeManagerInterface):
             scope=current_scope,
             instance_type=type(instance).__name__,
         )
+
+        # Trigger lifecycle event
+        self._trigger_lifecycle_event(
+            "instance_created",
+            component_type=type(instance).__name__,
+            scope=ComponentScope.SCOPED,
+            key=key,
+            scope_id=current_scope,
+        )
+
         return instance
 
     async def _get_or_create_scoped_async(
@@ -449,40 +486,82 @@ class ScopeManager(ScopeManagerInterface):
             self._dispose_instance(instance)
 
     def _dispose_instance(self, instance: Any) -> None:
-        """Dispose of a single instance."""
+        """Dispose of a single instance using event loop manager."""
         try:
-            if hasattr(instance, "cleanup") and callable(instance.cleanup):
-                if asyncio.iscoroutinefunction(instance.cleanup):
-                    # Handle async cleanup
-                    try:
-                        loop = asyncio.get_running_loop()
-                        loop.create_task(instance.cleanup())
-                    except RuntimeError:
-                        # No event loop running, can't dispose async
-                        logger.warning(
-                            "Cannot dispose async instance without event loop",
-                            instance_type=type(instance).__name__,
-                        )
-                else:
-                    instance.cleanup()
-            elif hasattr(instance, "dispose") and callable(instance.dispose):
-                instance.dispose()
-            elif hasattr(instance, "close") and callable(instance.close):
-                instance.close()
-            elif hasattr(instance, "shutdown") and callable(instance.shutdown):
-                if asyncio.iscoroutinefunction(instance.shutdown):
-                    try:
-                        loop = asyncio.get_running_loop()
-                        loop.create_task(instance.shutdown())
-                    except RuntimeError:
-                        logger.warning(
-                            "Cannot shutdown async instance without event loop",
-                            instance_type=type(instance).__name__,
-                        )
-                else:
-                    instance.shutdown()
+            get_event_loop_manager()
 
-            logger.debug("Disposed instance", instance_type=type(instance).__name__)
+            # Try cleanup methods in order of preference
+            cleanup_methods = [
+                (
+                    "cleanup",
+                    instance.cleanup
+                    if hasattr(instance, "cleanup") and callable(instance.cleanup)
+                    else None,
+                ),
+                (
+                    "dispose",
+                    instance.dispose
+                    if hasattr(instance, "dispose") and callable(instance.dispose)
+                    else None,
+                ),
+                (
+                    "close",
+                    instance.close
+                    if hasattr(instance, "close") and callable(instance.close)
+                    else None,
+                ),
+                (
+                    "shutdown",
+                    instance.shutdown
+                    if hasattr(instance, "shutdown") and callable(instance.shutdown)
+                    else None,
+                ),
+            ]
+
+            for method_name, method in cleanup_methods:
+                if method is not None:
+                    if asyncio.iscoroutinefunction(method):
+                        # Handle async cleanup using event loop manager
+                        result = run_async_safely(method())
+                        if result is not None:  # Success
+                            logger.debug(
+                                "Disposed instance using async method",
+                                instance_type=type(instance).__name__,
+                                method=method_name,
+                            )
+                            # Trigger disposal lifecycle event for successful async disposal
+                            self._trigger_lifecycle_event(
+                                "instance_disposed",
+                                component_type=type(instance).__name__,
+                                method=method_name,
+                            )
+                        else:  # Failed
+                            logger.warning(
+                                "Failed to dispose instance using async method",
+                                instance_type=type(instance).__name__,
+                                method=method_name,
+                            )
+                    else:
+                        # Handle sync cleanup
+                        method()
+                        logger.debug(
+                            "Disposed instance using sync method",
+                            instance_type=type(instance).__name__,
+                            method=method_name,
+                        )
+
+                    # Trigger disposal lifecycle event
+                    self._trigger_lifecycle_event(
+                        "instance_disposed",
+                        component_type=type(instance).__name__,
+                        method=method_name,
+                    )
+                    break  # Only call the first available method
+            else:
+                logger.debug(
+                    "No disposal method found for instance",
+                    instance_type=type(instance).__name__,
+                )
 
         except Exception as e:
             logger.warning(

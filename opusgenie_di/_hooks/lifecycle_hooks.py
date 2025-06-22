@@ -6,7 +6,6 @@ from typing import Any
 
 from .._base import LifecycleStage
 from .._utils import get_logger
-from .event_hooks import EventHookManager
 
 logger = get_logger(__name__)
 
@@ -46,7 +45,11 @@ class LifecycleHookManager:
 
     def __init__(self) -> None:
         """Initialize the lifecycle hook manager."""
-        self._hook_manager = EventHookManager()
+        from collections import defaultdict
+
+        self._hooks: dict[LifecycleHook, list[LifecycleHookFunction]] = defaultdict(
+            list
+        )
 
     def register_lifecycle_hook(
         self, hook: LifecycleHook, hook_function: LifecycleHookFunction
@@ -58,23 +61,15 @@ class LifecycleHookManager:
             hook: The lifecycle hook to register for
             hook_function: Function to call during lifecycle event
         """
+        if not callable(hook_function):
+            raise ValueError("Hook function must be callable")
 
-        def wrapper(event_data: dict[str, Any]) -> None:
-            component = event_data.get("component")
-            hook_function(component, event_data)
-
-        # Convert LifecycleHook to EventHook by using the value as event name
-        from .event_hooks import EventHook
-
-        # Create a synthetic event hook for lifecycle events
-        try:
-            event_hook = EventHook(hook.value)
-        except ValueError:
-            # If the lifecycle hook doesn't have a corresponding event hook,
-            # we'll use the generic LIFECYCLE_STAGE_CHANGED event
-            event_hook = EventHook.LIFECYCLE_STAGE_CHANGED
-
-        self._hook_manager.register_hook(event_hook, wrapper)
+        self._hooks[hook].append(hook_function)
+        logger.debug(
+            "Registered lifecycle hook",
+            hook_type=hook.value,
+            hook_function=hook_function.__name__,
+        )
 
     def emit_lifecycle_event(
         self,
@@ -92,6 +87,9 @@ class LifecycleHookManager:
             stage: Optional lifecycle stage
             **extra_data: Additional data to include in the event
         """
+        if hook not in self._hooks or not self._hooks[hook]:
+            return
+
         event_data = {
             "component": component,
             "component_type": type(component).__name__,
@@ -101,14 +99,25 @@ class LifecycleHookManager:
             **extra_data,
         }
 
-        from .event_hooks import EventHook
+        logger.debug(
+            "Emitting lifecycle event",
+            hook_type=hook.value,
+            hook_count=len(self._hooks[hook]),
+            component_type=type(component).__name__,
+        )
 
-        try:
-            event_hook = EventHook(hook.value)
-        except ValueError:
-            event_hook = EventHook.LIFECYCLE_STAGE_CHANGED
+        for hook_function in self._hooks[hook]:
+            try:
+                hook_function(component, event_data)
+            except Exception as e:
+                from .._utils import log_error
 
-        self._hook_manager.emit(event_hook, event_data)
+                log_error(
+                    "lifecycle_hook_execution",
+                    e,
+                    hook_function=hook_function.__name__,
+                    hook_type=hook.value,
+                )
 
     def execute_lifecycle_hook(
         self,
@@ -132,7 +141,8 @@ class LifecycleHookManager:
 
     def clear_lifecycle_hooks(self) -> None:
         """Clear all lifecycle hooks."""
-        self._hook_manager.clear_hooks()
+        self._hooks.clear()
+        logger.debug("Cleared all lifecycle hooks")
 
 
 # Global lifecycle hook manager

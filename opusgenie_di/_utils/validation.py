@@ -59,8 +59,6 @@ def validate_component_registration(
     Raises:
         ComponentValidationError: If validation fails
     """
-    component_name = component_name or implementation.__name__
-
     # Validate implementation is a type
     if not isinstance(implementation, type):
         raise ComponentValidationError(
@@ -68,6 +66,9 @@ def validate_component_registration(
             component_type=component_name,
             details=f"Implementation {implementation} is not a type. Only types can be registered as implementations.",
         )
+
+    # Set component name after type validation
+    component_name = component_name or implementation.__name__
 
     # Validate implementation is concrete/instantiable
     if not is_concrete_type(implementation):
@@ -104,16 +105,16 @@ def validate_context_name(context_name: str) -> None:
     Raises:
         ValidationError: If the context name is invalid
     """
+    if not isinstance(context_name, str):
+        raise ValidationError(
+            f"Context name must be a string, got {type(context_name).__name__}",
+            details=f"Expected string, got {type(context_name)}",
+        )
+
     if not context_name or not context_name.strip():
         raise ValidationError(
             "Context name cannot be empty",
             details="Context names must be non-empty strings",
-        )
-
-    if not isinstance(context_name, str):
-        raise ValidationError(
-            f"Context name must be a string, got {type(context_name)}",
-            details=f"Context name {context_name} is not a string",
         )
 
     # Check for invalid characters (could be extended)
@@ -136,13 +137,13 @@ def validate_module_name(module_name: str) -> None:
     Raises:
         ModuleValidationError: If the module name is invalid
     """
-    if not module_name or not module_name.strip():
+    if not isinstance(module_name, str):
         raise ModuleValidationError(
-            "Module name cannot be empty",
-            details="Module names must be non-empty strings",
+            f"Module name must be a string, got {type(module_name).__name__}",
+            details=f"Expected string, got {type(module_name)}",
         )
 
-    if not isinstance(module_name, str):
+    if not module_name or not module_name.strip():
         raise ModuleValidationError(
             f"Module name must be a string, got {type(module_name)}",
             details=f"Module name {module_name} is not a string",
@@ -159,13 +160,13 @@ def validate_provider_name(provider_name: str) -> None:
     Raises:
         ValidationError: If the provider name is invalid
     """
-    if not provider_name or not provider_name.strip():
+    if not isinstance(provider_name, str):
         raise ValidationError(
-            "Provider name cannot be empty",
-            details="Provider names must be non-empty strings",
+            f"Provider name must be a string, got {type(provider_name).__name__}",
+            details=f"Expected string, got {type(provider_name)}",
         )
 
-    if not isinstance(provider_name, str):
+    if not provider_name or not provider_name.strip():
         raise ValidationError(
             f"Provider name must be a string, got {type(provider_name)}",
             details=f"Provider name {provider_name} is not a string",

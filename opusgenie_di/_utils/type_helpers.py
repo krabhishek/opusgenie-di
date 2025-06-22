@@ -40,8 +40,13 @@ def get_primary_type(type_hint: Any) -> type | None:
         non_none_types = extract_non_none_types(type_hint)
         return non_none_types[0] if non_none_types else None
 
-    if type_hint is not type(None) and inspect.isclass(type_hint):
-        return type_hint
+    if type_hint is not type(None):
+        # Handle regular classes
+        if inspect.isclass(type_hint):
+            return type_hint
+        # Handle generic types like list[int], dict[str, int], etc.
+        if hasattr(type_hint, "__origin__"):
+            return type_hint  # type: ignore[no-any-return]
     return None
 
 
@@ -75,12 +80,12 @@ def get_constructor_dependencies(cls: type) -> dict[str, tuple[type | None, bool
                 if module:
                     module_globals = getattr(module, "__dict__", {})
                     # Get type hints from the __init__ method, not the class
-                    type_hints = get_type_hints(cls.__init__, globalns=module_globals)
+                    type_hints = get_type_hints(cls.__init__, globalns=module_globals)  # type: ignore[misc]
                 else:
-                    type_hints = get_type_hints(cls.__init__)
+                    type_hints = get_type_hints(cls.__init__)  # type: ignore[misc]
             else:
                 type_hints = (
-                    get_type_hints(cls.__init__) if hasattr(cls, "__init__") else {}
+                    get_type_hints(cls.__init__) if hasattr(cls, "__init__") else {}  # type: ignore[misc]
                 )
         except (NameError, AttributeError, TypeError) as e:
             logger.debug(

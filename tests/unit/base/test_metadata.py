@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime
 
+from pydantic import ValidationError
 import pytest
 
 from opusgenie_di import (
@@ -168,10 +169,10 @@ class TestComponentMetadata:
         assert metadata is not None
 
         # Missing required fields should raise
-        with pytest.raises(Exception):  # Could be ValidationError or TypeError
+        with pytest.raises(ValidationError):
             ComponentMetadata(component_type="TestComponent")  # missing context_name
 
-        with pytest.raises(Exception):  # Could be ValidationError or TypeError
+        with pytest.raises(ValidationError):
             ComponentMetadata(context_name="test_context")  # missing component_type
 
     def test_component_metadata_string_representation(self) -> None:

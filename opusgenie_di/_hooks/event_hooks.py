@@ -69,7 +69,7 @@ class EventHookManager:
         self._hooks[event].append(hook_function)
         logger.debug(
             "Registered event hook",
-            event=event.value,
+            event_type=event.value,
             hook_function=hook_function.__name__,
         )
 
@@ -88,7 +88,7 @@ class EventHookManager:
             self._hooks[event].remove(hook_function)
             logger.debug(
                 "Unregistered event hook",
-                event=event.value,
+                event_type=event.value,
                 hook_function=hook_function.__name__,
             )
             return True
@@ -110,7 +110,7 @@ class EventHookManager:
 
         logger.debug(
             "Emitting event",
-            event=event.value,
+            event_type=event.value,
             hook_count=len(self._hooks[event]),
             event_data_keys=list(event_data.keys()),
         )
@@ -123,7 +123,7 @@ class EventHookManager:
                     "event_hook_execution",
                     e,
                     hook_function=hook_function.__name__,
-                    event=event.value,
+                    event_type=event.value,
                 )
                 # Continue with other hooks even if one fails
 
@@ -153,7 +153,7 @@ class EventHookManager:
             logger.debug("Cleared all event hooks")
         else:
             self._hooks[event].clear()
-            logger.debug("Cleared event hooks", event=event.value)
+            logger.debug("Cleared event hooks", event_type=event.value)
 
     def set_enabled(self, enabled: bool) -> None:
         """

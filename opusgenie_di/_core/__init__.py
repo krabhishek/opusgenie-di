@@ -4,6 +4,12 @@ from .container_impl import Container
 from .container_interface import ContainerInterface
 from .context_impl import Context, ImportDeclaration, ImportManager
 from .context_interface import ContextInterface
+from .event_loop_manager import (
+    EventLoopManager,
+    get_event_loop_manager,
+    run_async_safely,
+    schedule_async_cleanup,
+)
 from .exceptions import (
     CircularDependencyError,
     ComponentRegistrationError,
@@ -44,6 +50,11 @@ __all__ = [
     "Context",
     "ScopeManager",
     "ComponentProvider",
+    # Event loop management
+    "EventLoopManager",
+    "get_event_loop_manager",
+    "run_async_safely",
+    "schedule_async_cleanup",
     # Import system
     "ImportDeclaration",
     "ImportManager",

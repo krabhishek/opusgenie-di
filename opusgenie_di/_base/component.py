@@ -178,28 +178,60 @@ class BaseComponent(BaseModel, ABC):
     # Lifecycle Methods (Optional Override)
     # ==========================================
 
+    # Async lifecycle methods (preferred for async components)
     async def initialize(self) -> None:
-        """Initialize the component. Override in subclasses if needed."""
+        """Initialize the component async. Override in subclasses if needed."""
         self.set_lifecycle_stage(LifecycleStage.INITIALIZING)
-        # Subclasses can override for custom initialization
+        # Call sync variant for backward compatibility
+        self.initialize_sync()
         self.set_lifecycle_stage(LifecycleStage.ACTIVE)
 
     async def start(self) -> None:
-        """Start the component. Override in subclasses if needed."""
+        """Start the component async. Override in subclasses if needed."""
         self.set_lifecycle_stage(LifecycleStage.STARTUP)
-        # Subclasses can override for custom startup logic
+        # Call sync variant for backward compatibility
+        self.start_sync()
         self.set_lifecycle_stage(LifecycleStage.RUNNING)
 
     async def stop(self) -> None:
-        """Stop the component. Override in subclasses if needed."""
+        """Stop the component async. Override in subclasses if needed."""
         self.set_lifecycle_stage(LifecycleStage.STOPPING)
-        # Subclasses can override for custom shutdown logic
+        # Call sync variant for backward compatibility
+        self.stop_sync()
         self.set_lifecycle_stage(LifecycleStage.STOPPED)
 
     async def cleanup(self) -> None:
-        """Clean up component resources. Override in subclasses if needed."""
+        """Clean up component resources async. Override in subclasses if needed."""
+        # Call sync variant for backward compatibility
+        self.cleanup_sync()
         self.set_lifecycle_stage(LifecycleStage.POST_SHUTDOWN)
-        # Subclasses can override for custom cleanup logic
+
+    # Sync lifecycle methods (for sync components or mixed scenarios)
+    def initialize_sync(self) -> None:
+        """Initialize the component sync. Override in subclasses if needed."""
+        # Default implementation does nothing
+        # Subclasses can override for custom sync initialization
+
+    def start_sync(self) -> None:
+        """Start the component sync. Override in subclasses if needed."""
+        # Default implementation does nothing
+        # Subclasses can override for custom sync startup logic
+
+    def stop_sync(self) -> None:
+        """Stop the component sync. Override in subclasses if needed."""
+        # Default implementation does nothing
+        # Subclasses can override for custom sync shutdown logic
+
+    def cleanup_sync(self) -> None:
+        """Clean up component resources sync. Override in subclasses if needed."""
+        # Default implementation does nothing
+        # Subclasses can override for custom sync cleanup logic
+
+    # Convenience method for sync-only disposal
+    def dispose(self) -> None:
+        """Dispose of component synchronously."""
+        self.cleanup_sync()
+        self.set_lifecycle_stage(LifecycleStage.POST_SHUTDOWN)
 
     def __repr__(self) -> str:
         """Get string representation of the component."""

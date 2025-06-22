@@ -5,7 +5,7 @@
 [![PyPI downloads](https://img.shields.io/pypi/dm/opusgenie-di.svg)](https://pypi.org/project/opusgenie-di/)
 [![Apache License 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A powerful, multi-context dependency injection framework for Python that provides Angular-style dependency injection with support for multiple isolated contexts, cross-context imports, declarative module definitions, and comprehensive lifecycle management.
+A powerful, multi-context dependency injection framework for Python that provides Angular-style dependency injection with support for multiple isolated contexts, cross-context imports, declarative module definitions, comprehensive async lifecycle management, and event-driven monitoring.
 
 ## Features
 
@@ -14,6 +14,8 @@ A powerful, multi-context dependency injection framework for Python that provide
 - **Cross-Context Dependencies**: Automatically inject dependencies from imported contexts
 - **Declarative Configuration**: Use `@og_component` and `@og_context` decorators for clean setup
 - **Component Scopes**: Singleton, Transient, and Scoped lifecycles
+- **Async Lifecycle Management**: Comprehensive async/await support with event loop management
+- **Event-Driven Monitoring**: Lifecycle callbacks for component creation and disposal
 - **Type Safety**: Full type safety with Python type hints and runtime validation
 - **Event System**: Built-in event hooks for monitoring and extension
 - **Framework Agnostic**: No dependencies on specific frameworks
@@ -371,7 +373,90 @@ class DatabaseService(BaseComponent):
     pass
 ```
 
-### Async Support
+### Async Lifecycle Management
+
+OpusGenie DI v0.1.4 introduces comprehensive async lifecycle management for robust async/await support:
+
+#### Event Loop Management
+
+```python
+from opusgenie_di import get_event_loop_manager, run_async_safely
+
+# Automatic event loop management
+event_manager = get_event_loop_manager()
+
+# Safe async execution in any context
+async def cleanup_resources():
+    # Your async cleanup code
+    pass
+
+# This works whether or not an event loop is running
+run_async_safely(cleanup_resources())
+```
+
+#### Async Component Lifecycle
+
+```python
+@og_component()
+class AsyncService(BaseComponent):
+    async def initialize(self) -> None:
+        """Async initialization - called automatically"""
+        await super().initialize()
+        # Your async setup code
+        
+    async def cleanup(self) -> None:
+        """Async cleanup - called on disposal"""
+        await super().cleanup()
+        # Your async cleanup code
+        
+    def cleanup_sync(self) -> None:
+        """Sync cleanup fallback"""
+        super().cleanup_sync()
+        # Sync cleanup code
+```
+
+#### Lifecycle Callbacks and Monitoring
+
+```python
+from opusgenie_di import ScopeManager
+
+def lifecycle_callback(event: str, **kwargs):
+    print(f"Component {event}: {kwargs.get('component_type')}")
+
+# Create scope manager with lifecycle monitoring
+scope_manager = ScopeManager(lifecycle_callback=lifecycle_callback)
+
+# Events are triggered for:
+# - instance_created: When a component is instantiated
+# - instance_disposed: When a component is cleaned up
+```
+
+#### Mixed Sync/Async Support
+
+```python
+@og_component()
+class FlexibleService(BaseComponent):
+    def dispose(self) -> None:
+        """Sync disposal method"""
+        self.cleanup_resources()
+        
+    async def cleanup(self) -> None:
+        """Async cleanup method (preferred)"""
+        await self.async_cleanup_resources()
+        
+    # The framework automatically chooses the appropriate method
+    # based on event loop availability
+```
+
+#### Key Benefits
+
+- **Guaranteed Async Execution**: Components with async lifecycle methods are properly awaited
+- **Graceful Fallbacks**: Automatic fallback to sync methods when no event loop is available  
+- **Event-Driven Monitoring**: Lifecycle callbacks for observability and debugging
+- **Zero Configuration**: Works out of the box with existing sync components
+- **Thread Safe**: Event loop management is thread-safe for concurrent applications
+
+### Async Resolution
 
 ```python
 from opusgenie_di import resolve_global_component_async

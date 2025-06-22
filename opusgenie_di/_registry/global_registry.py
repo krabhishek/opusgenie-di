@@ -35,11 +35,15 @@ class GlobalRegistry:
         with self._lock:
             # Check for duplicate registration
             if metadata.name in self._modules:
+                old_metadata = self._modules[metadata.name]
                 logger.warning(
                     "Module already registered, updating",
                     module_name=metadata.name,
                     module_class=metadata.module_class.__name__,
                 )
+                # Remove old module class reference
+                if old_metadata.module_class in self._modules_by_class:
+                    del self._modules_by_class[old_metadata.module_class]
 
             # Register the module
             self._modules[metadata.name] = metadata
