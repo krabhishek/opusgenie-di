@@ -1,5 +1,3 @@
-
-
 from abc import ABC
 from datetime import datetime
 from typing import Any
@@ -10,8 +8,6 @@ from .enums import ComponentLayer, LifecycleStage
 from .metadata import ComponentMetadata
 
 class BaseComponent(BaseModel, ABC):
-
-
     # Core fields (explicitly declared for type checkers)
     component_id: str
     component_type: str | None

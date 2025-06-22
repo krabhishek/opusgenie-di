@@ -17,7 +17,6 @@ class GlobalContext(Context):
     def get_summary(self) -> dict[str, Any]: ...
 
 def get_global_context() -> GlobalContext: ...
-
 def register_global_component(
     interface: type,
     implementation: type | None = None,
@@ -26,19 +25,12 @@ def register_global_component(
     name: str | None = None,
     tags: dict[str, Any] | None = None,
 ) -> None: ...
-
 def resolve_global_component[TInterface](
-    interface: type[TInterface],
-    name: str | None = None
+    interface: type[TInterface], name: str | None = None
 ) -> TInterface: ...
-
 async def resolve_global_component_async[TInterface](
-    interface: type[TInterface],
-    name: str | None = None
+    interface: type[TInterface], name: str | None = None
 ) -> TInterface: ...
-
 def reset_global_context() -> None: ...
-
 def get_global_context_summary() -> dict[str, Any]: ...
-
 def is_global_context_initialized() -> bool: ...

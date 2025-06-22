@@ -1,5 +1,3 @@
-
-
 from .component import BaseComponent as BaseComponent
 from .enums import (
     ComponentLayer as ComponentLayer,

@@ -15,10 +15,10 @@ def define_env(env):
     """
 
     # Define variables that can be used in markdown
-    env.variables['project_name'] = 'OpusGenie DI'
-    env.variables['bank_name'] = 'OgPgy Bank'
-    env.variables['country_name'] = 'Genai'
-    env.variables['payment_processor'] = 'VelocityPay'
+    env.variables["project_name"] = "OpusGenie DI"
+    env.variables["bank_name"] = "OgPgy Bank"
+    env.variables["country_name"] = "Genai"
+    env.variables["payment_processor"] = "VelocityPay"
 
     # Define macros (functions that can be called from markdown)
 
@@ -35,7 +35,9 @@ def define_env(env):
     **Scenario:** {scenario}"""
 
     @env.macro
-    def code_comparison(good_title: str, good_code: str, bad_title: str, bad_code: str) -> str:
+    def code_comparison(
+        good_title: str, good_code: str, bad_title: str, bad_code: str
+    ) -> str:
         """Create a side-by-side code comparison."""
         return f"""=== "✅ {good_title}"
     ```python
@@ -50,13 +52,9 @@ def define_env(env):
     @env.macro
     def banking_flow_steps(*steps) -> str:
         """Create a numbered list of banking flow steps."""
-        return "\n".join([f"{i+1}. {step}" for i, step in enumerate(steps)])
+        return "\n".join([f"{i + 1}. {step}" for i, step in enumerate(steps)])
 
     @env.macro
     def version_info() -> dict:
         """Return version information."""
-        return {
-            'opusgenie_di': '0.1.4',
-            'python_min': '3.12',
-            'last_updated': '2024'
-        }
+        return {"opusgenie_di": "0.1.4", "python_min": "3.12", "last_updated": "2024"}

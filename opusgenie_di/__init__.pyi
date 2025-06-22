@@ -1,6 +1,3 @@
-
-
-
 # Core base components - with explicit re-export
 from ._base import (
     BaseComponent as BaseComponent,

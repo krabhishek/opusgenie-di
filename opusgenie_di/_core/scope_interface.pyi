@@ -14,7 +14,6 @@ class ScopeManagerInterface(ABC):
         factory: Callable[[], T],
         scope: ComponentScope,
     ) -> T: ...
-
     @abstractmethod
     async def get_or_create_async(
         self,
@@ -22,12 +21,9 @@ class ScopeManagerInterface(ABC):
         factory: Callable[[], Coroutine[Any, Any, T]],
         scope: ComponentScope,
     ) -> T: ...
-
     @abstractmethod
     def create_scope(self, scope_name: str | None = None) -> str: ...
-
     @abstractmethod
     def dispose_scope(self, scope_name: str) -> None: ...
-
     @abstractmethod
     def clear_all_scopes(self) -> None: ...

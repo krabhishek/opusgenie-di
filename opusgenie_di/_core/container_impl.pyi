@@ -24,7 +24,6 @@ class Container(ContainerInterface[T]):
     _creation_time: float
 
     def __init__(self, name: str = "default") -> None: ...
-
     def register(
         self,
         interface: type[TInterface],
@@ -35,7 +34,6 @@ class Container(ContainerInterface[T]):
         tags: dict[str, Any] | None = None,
         factory: Any = None,
     ) -> None: ...
-
     def register_provider(
         self,
         interface: type[TInterface],
@@ -44,40 +42,31 @@ class Container(ContainerInterface[T]):
         name: str | None = None,
         tags: dict[str, Any] | None = None,
     ) -> None: ...
-
     def resolve(
         self, interface: type[TInterface], name: str | None = None
     ) -> TInterface: ...
-
     async def resolve_async(
         self, interface: type[TInterface], name: str | None = None
     ) -> TInterface: ...
-
     def is_registered(
         self, interface: type[TInterface], name: str | None = None
     ) -> bool: ...
-
     def get_metadata(
         self, interface: type[TInterface], name: str | None = None
     ) -> ComponentMetadataProtocol: ...
-
-    def unregister(self, interface: type[TInterface], name: str | None = None) -> bool: ...
-
+    def unregister(
+        self, interface: type[TInterface], name: str | None = None
+    ) -> bool: ...
     def clear(self) -> None: ...
-
     def get_registered_types(self) -> list[type]: ...
-
     def get_registration_count(self) -> int: ...
-
     def _get_provider_key(self, interface: type, name: str | None = None) -> str: ...
-
     def _create_provider(
         self,
         implementation: type[TImplementation],
         scope: ComponentScope,
         factory: Any = None,
     ) -> Any: ...
-
     def _validate_registration(
         self,
         interface: type[TInterface],

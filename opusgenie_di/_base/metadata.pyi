@@ -1,5 +1,3 @@
-
-
 from datetime import datetime
 from typing import Any
 
@@ -8,8 +6,6 @@ from pydantic import BaseModel
 from .enums import ComponentLayer, LifecycleStage
 
 class ComponentMetadata(BaseModel):
-
-
     component_id: str
     component_type: str
     component_name: str | None
