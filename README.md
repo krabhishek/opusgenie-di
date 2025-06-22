@@ -1,8 +1,9 @@
 # OpusGenie Dependency Injection
 
+[![PyPI version](https://img.shields.io/pypi/v/opusgenie-di.svg)](https://pypi.org/project/opusgenie-di/)
+[![Python 3.12+](https://img.shields.io/pypi/pyversions/opusgenie-di.svg)](https://pypi.org/project/opusgenie-di/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/opusgenie-di.svg)](https://pypi.org/project/opusgenie-di/)
 [![Apache License 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI version](https://badge.fury.io/py/opusgenie-di.svg)](https://pypi.org/project/opusgenie-di/)
 
 A powerful, multi-context dependency injection framework for Python that provides Angular-style dependency injection with support for multiple isolated contexts, cross-context imports, declarative module definitions, and comprehensive lifecycle management.
 
