@@ -122,10 +122,10 @@ def og_context(
             register_module(metadata)
 
             # Add module-specific attributes to the class
-            cls._og_module_metadata = metadata
-            cls._og_module_options = options
-            cls._og_import_collection = import_collection
-            cls._og_provider_collection = provider_collection
+            cls._og_module_metadata = metadata  # type: ignore[attr-defined]
+            cls._og_module_options = options  # type: ignore[attr-defined]
+            cls._og_import_collection = import_collection  # type: ignore[attr-defined]
+            cls._og_provider_collection = provider_collection  # type: ignore[attr-defined]
 
             # Add convenience methods to the class
             _add_module_methods(cls, metadata)

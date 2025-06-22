@@ -1,6 +1,6 @@
 [project]
 name = "opusgenie-di"
-version = "0.1.0"
+version = "0.1.1"
 description = "A powerful, multi-context dependency injection framework for Python"
 readme = "README.md"
 requires-python = ">=3.12"

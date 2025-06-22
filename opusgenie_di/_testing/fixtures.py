@@ -219,7 +219,9 @@ def create_test_module_classes() -> dict[str, type]:
     @og_context(
         name="test_application",
         imports=[
-            ModuleContextImport(MockComponent, from_context="test_infrastructure")
+            ModuleContextImport(
+                component_type=MockComponent, from_context="test_infrastructure"
+            )
         ],
         exports=[MockComponentWithDependency],
         providers=[MockComponentWithDependency],

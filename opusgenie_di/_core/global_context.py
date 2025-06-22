@@ -175,7 +175,9 @@ def register_global_component(
     )
 
 
-def resolve_global_component(interface: type, name: str | None = None) -> Any:
+def resolve_global_component[TInterface](
+    interface: type[TInterface], name: str | None = None
+) -> TInterface:
     """
     Resolve a component from the global context.
 
@@ -187,7 +189,7 @@ def resolve_global_component(interface: type, name: str | None = None) -> Any:
         Component instance implementing the interface
     """
     context = get_global_context()
-    instance = context.resolve(interface, name)
+    instance: TInterface = context.resolve(interface, name)
 
     logger.debug(
         "Resolved component from global context",
@@ -199,9 +201,9 @@ def resolve_global_component(interface: type, name: str | None = None) -> Any:
     return instance
 
 
-async def resolve_global_component_async(
-    interface: type, name: str | None = None
-) -> Any:
+async def resolve_global_component_async[TInterface](
+    interface: type[TInterface], name: str | None = None
+) -> TInterface:
     """
     Asynchronously resolve a component from the global context.
 
@@ -213,7 +215,7 @@ async def resolve_global_component_async(
         Component instance implementing the interface
     """
     context = get_global_context()
-    instance = await context.resolve_async(interface, name)
+    instance: TInterface = await context.resolve_async(interface, name)
 
     logger.debug(
         "Resolved component asynchronously from global context",

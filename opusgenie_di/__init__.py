@@ -132,15 +132,13 @@ from ._testing import (
 )
 
 # Version information
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = "Abhishek Pathak"
-__email__ = "abhishek@opusgenie.com"
 
 __all__ = [
     # Version
     "__version__",
     "__author__",
-    "__email__",
     # Core base components
     "BaseComponent",
     "ComponentScope",

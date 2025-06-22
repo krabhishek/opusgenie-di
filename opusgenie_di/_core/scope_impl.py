@@ -250,7 +250,7 @@ class ScopeManager(ScopeManagerInterface):
         # Check if instance already exists (non-blocking)
         with self._lock:
             if key in self._singletons:
-                return self._singletons[key]
+                return self._singletons[key]  # type: ignore[no-any-return]
 
         # Create instance asynchronously
         instance = await factory()
@@ -261,7 +261,7 @@ class ScopeManager(ScopeManagerInterface):
             if key in self._singletons:
                 # Another coroutine beat us to it, dispose our instance and return the existing one
                 self._dispose_instance(instance)
-                return self._singletons[key]
+                return self._singletons[key]  # type: ignore[no-any-return]
 
             self._singletons[key] = instance
             self._track_disposable(instance)
@@ -299,7 +299,7 @@ class ScopeManager(ScopeManagerInterface):
         scope_name = "default"
 
         if key in self._scoped_instances[scope_name]:
-            return self._scoped_instances[scope_name][key]
+            return self._scoped_instances[scope_name][key]  # type: ignore[no-any-return]
 
         instance = factory()
         self._scoped_instances[scope_name][key] = instance
@@ -321,7 +321,7 @@ class ScopeManager(ScopeManagerInterface):
         # Check if instance already exists
         with self._lock:
             if key in self._scoped_instances[scope_name]:
-                return self._scoped_instances[scope_name][key]
+                return self._scoped_instances[scope_name][key]  # type: ignore[no-any-return]
 
         # Create instance asynchronously
         instance = await factory()
@@ -331,7 +331,7 @@ class ScopeManager(ScopeManagerInterface):
             # Double-check in case another coroutine created it
             if key in self._scoped_instances[scope_name]:
                 self._dispose_instance(instance)
-                return self._scoped_instances[scope_name][key]
+                return self._scoped_instances[scope_name][key]  # type: ignore[no-any-return]
 
             self._scoped_instances[scope_name][key] = instance
             self._track_disposable(instance)

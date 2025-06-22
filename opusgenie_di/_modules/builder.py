@@ -106,7 +106,10 @@ class ContextModuleBuilder(BaseModel):
         Returns:
             Dictionary mapping context names to created contexts
         """
-        return run_async_in_sync(self.build_contexts(*module_classes))
+        result: dict[str, Context] = run_async_in_sync(
+            self.build_contexts(*module_classes)
+        )
+        return result
 
     async def _build_single_context(
         self, metadata: ModuleMetadata, existing_contexts: dict[str, Context]

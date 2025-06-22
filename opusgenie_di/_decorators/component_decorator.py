@@ -84,8 +84,8 @@ def og_component(
             enhanced_tags = enhance_component_tags(cls, options.get_tags_dict())
 
             # Add component metadata to the class
-            cls._og_component_options = options
-            cls._og_component_metadata = create_metadata_dict(
+            cls._og_component_options = options  # type: ignore[attr-defined]
+            cls._og_component_metadata = create_metadata_dict(  # type: ignore[attr-defined]
                 component_type=cls.__name__,
                 scope=options.scope.value,
                 layer=options.layer.value if options.layer else None,
@@ -94,7 +94,7 @@ def og_component(
                 lazy_init=options.lazy_init,
                 decorated_at=__name__,
             )
-            cls._og_enhanced_tags = enhanced_tags
+            cls._og_enhanced_tags = enhanced_tags  # type: ignore[attr-defined]
 
             # Log decorator application
             decorator_sig = get_decorator_signature(

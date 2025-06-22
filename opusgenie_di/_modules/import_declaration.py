@@ -161,7 +161,7 @@ class ImportCollection(BaseModel):
     def __len__(self) -> int:
         return len(self.imports)
 
-    def __iter__(self):
+    def __iter__(self):  # type: ignore[no-untyped-def]
         return iter(self.imports)
 
     def __contains__(self, item: ModuleContextImport | str) -> bool:

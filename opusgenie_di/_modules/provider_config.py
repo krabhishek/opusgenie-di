@@ -180,7 +180,7 @@ class ProviderCollection(BaseModel):
         errors = []
 
         # Check for duplicate interface registrations
-        interfaces = {}
+        interfaces: dict[str, str] = {}
         for provider in self.providers:
             interface_name = provider.interface.__name__
             provider_name = provider.get_provider_name()
@@ -227,7 +227,7 @@ class ProviderCollection(BaseModel):
     def __len__(self) -> int:
         return len(self.providers)
 
-    def __iter__(self):
+    def __iter__(self):  # type: ignore[no-untyped-def]
         return iter(self.providers)
 
     def __contains__(self, item: ProviderConfig | str | type) -> bool:

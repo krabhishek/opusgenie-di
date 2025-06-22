@@ -2,11 +2,12 @@
 
 from threading import RLock
 import time
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from dependency_injector import containers, providers
 
 from .._base import ComponentMetadata, ComponentScope
+from .._base.protocols import ComponentMetadataProtocol
 from .._utils import (
     get_constructor_dependencies,
     get_logger,
@@ -288,7 +289,7 @@ class Container(ContainerInterface[T]):
                     instance_id=getattr(instance, "component_id", None),
                 )
 
-                return instance
+                return instance  # type: ignore[no-any-return]
 
         except ComponentResolutionError:
             raise
@@ -341,7 +342,7 @@ class Container(ContainerInterface[T]):
 
     def get_metadata(
         self, interface: type[TInterface], name: str | None = None
-    ) -> ComponentMetadata:
+    ) -> ComponentMetadataProtocol:
         """
         Get metadata for a registered component.
 
@@ -360,7 +361,9 @@ class Container(ContainerInterface[T]):
                     component_type=interface.__name__,
                     details=f"Component '{provider_name}' not registered",
                 )
-            return self._component_metadata[provider_name]
+            return cast(
+                ComponentMetadataProtocol, self._component_metadata[provider_name]
+            )
 
     def unregister(self, interface: type[TInterface], name: str | None = None) -> bool:
         """
