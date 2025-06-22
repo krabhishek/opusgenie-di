@@ -450,6 +450,16 @@ context.enable_auto_wiring()
 
 Apache License 2.0 - see LICENSE file for details.
 
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
+
+- 🐛 Reporting bugs
+- ✨ Suggesting features  
+- 💻 Contributing code
+- 📖 Improving documentation
+- 🧪 Writing tests
+
 ## Support
 
 For issues and questions, please visit our [GitHub repository](https://github.com/krabhishek/opusgenie-di).

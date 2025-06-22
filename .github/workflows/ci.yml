@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12', '3.13']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+
+      - name: Format check
+        run: |
+          uv run ruff format --check .
+
+      - name: Lint check
+        run: |
+          uv run ruff check .
+
+      - name: Type check
+        run: |
+          uv run mypy opusgenie_di/
+
+      - name: Test package import
+        run: |
+          uv run python -c "import opusgenie_di; print('✅ Package imports successfully')"
+
+      - name: Test basic usage example
+        run: |
+          uv run python examples/basic_usage.py
+
+      - name: Test multi-context example
+        run: |
+          uv run python examples/multi_context.py
+
+      - name: Verify registered types are displayed
+        run: |
+          # Test that the registered types fix is working
+          uv run python examples/basic_usage.py | grep -q "registered_types.*class.*DatabaseService"
+          uv run python examples/multi_context.py | grep -q "Types.*class.*DatabaseRepository"
+          echo "✅ Registered types are properly displayed"
+
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Install build dependencies
+        run: |
+          uv add --dev build twine
+
+      - name: Build package
+        run: |
+          uv run python -m build
+
+      - name: Check build
+        run: |
+          uv run twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist/
+          retention-days: 7

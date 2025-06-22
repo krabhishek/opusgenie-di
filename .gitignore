@@ -31,3 +31,10 @@ site/
 # AI assistants
 CLAUDE.md
 .claude/
+
+# Maintainer documentation (not for public repo)
+GITHUB_ACTIONS_SUMMARY.md
+PYPI_RELEASE_GUIDE.md
+.github/RELEASE_PROCESS.md
+.github/PYPI_SETUP.md
+.github/README.md

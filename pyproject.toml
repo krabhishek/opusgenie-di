@@ -4,7 +4,8 @@ version = "0.1.0"
 description = "A powerful, multi-context dependency injection framework for Python"
 readme = "README.md"
 requires-python = ">=3.12"
-license = {file = "LICENSE"}
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [
     {name = "Abhishek Pathak"}
 ]
@@ -22,7 +23,6 @@ keywords = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
@@ -61,6 +61,7 @@ dev = [
     "pytest>=8.3.5",
     "pytest-asyncio>=0.24.0",
     "pytest-cov>=6.1.1",
+    "pyyaml>=6.0.2",
     "ruff>=0.11.11",
 ]
 
