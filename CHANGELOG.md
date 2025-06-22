@@ -5,10 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2025-06-22
+
+### Fixed
+- 🚀 **PyPI Release Process**: Fixed workflow to allow PyPI deployment when TestPyPI already has the version
+- 🔧 **Release Workflow**: Made TestPyPI dependency optional for PyPI deployment
+- 🔐 **Workflow Security**: Added least-privilege permissions to all GitHub Actions jobs
+
+### Added
+- 🔒 **Security Enhancements**: Comprehensive security measures including branch protection
+- 📝 **Security Documentation**: Added SECURITY.md with detailed security policies
+
 ## [0.1.2] - 2025-01-22
 
 ### Fixed
-- 🔧 **TestPyPI Version Conflict**: Incremented version to resolve existing package conflict
+- 🔧 **CI Pipeline**: Fixed grep pattern for registered types verification
+- 🏗️ **Local CI**: Added consistency between local and GitHub Actions CI
 
 ## [0.1.1] - 2025-01-22
 
