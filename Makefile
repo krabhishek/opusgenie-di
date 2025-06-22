@@ -19,6 +19,7 @@ help:
 	@echo "Testing Commands:"
 	@echo "  test        - Run all tests (currently examples)"
 	@echo "  examples    - Run example scripts"
+	@echo "  verify-types - Verify registered types display correctly"
 	@echo ""
 	@echo "Build Commands:"
 	@echo "  build       - Build package"
@@ -49,7 +50,14 @@ typecheck:
 test: examples
 	@echo "✅ All tests passed"
 
-examples:
+# Verify registered types display (matching GitHub Actions CI)
+verify-types:
+	@echo "🔍 Verifying registered types display..."
+	@uv run python examples/basic_usage.py | grep -q "Registered types.*class.*DatabaseService"
+	@uv run python examples/multi_context.py | grep -q "Types.*class.*DatabaseRepository"
+	@echo "✅ Registered types verification passed"
+
+examples: verify-types
 	@echo "🧪 Running examples..."
 	@echo "  → Basic usage example"
 	@uv run python examples/basic_usage.py > /dev/null

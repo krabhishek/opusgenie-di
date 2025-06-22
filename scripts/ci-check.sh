@@ -98,6 +98,24 @@ else
     exit 1
 fi
 
+# Test registered types display (matching GitHub Actions)
+print_step "Testing Registered Types Display"
+if uv run python examples/basic_usage.py | grep -q "Registered types.*class.*DatabaseService"; then
+    echo "✅ Basic usage registered types check passed"
+else
+    echo "❌ Basic usage registered types check failed"
+    uv run python examples/basic_usage.py
+    exit 1
+fi
+
+if uv run python examples/multi_context.py | grep -q "Types.*class.*DatabaseRepository"; then
+    echo "✅ Multi-context registered types check passed"
+else
+    echo "❌ Multi-context registered types check failed"
+    uv run python examples/multi_context.py
+    exit 1
+fi
+
 # Test package import
 print_step "Testing Package Import"
 if uv run python -c "import opusgenie_di; print(f'Package version: {opusgenie_di.__version__}')"; then
@@ -127,6 +145,7 @@ echo "✅ Linting"
 echo "✅ Type checking"
 echo "✅ Basic usage example"
 echo "✅ Multi-context example"
+echo "✅ Registered types display"
 echo "✅ Package import"
 echo "✅ Package build"
 echo ""

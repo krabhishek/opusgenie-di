@@ -59,7 +59,7 @@ jobs:
       - name: Verify registered types are displayed
         run: |
           # Test that the registered types fix is working
-          uv run python examples/basic_usage.py | grep -q "registered_types.*class.*DatabaseService"
+          uv run python examples/basic_usage.py | grep -q "Registered types.*class.*DatabaseService"
           uv run python examples/multi_context.py | grep -q "Types.*class.*DatabaseRepository"
           echo "✅ Registered types are properly displayed"
 
