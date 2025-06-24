@@ -132,7 +132,7 @@ from ._testing import (
 )
 
 # Version information
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 __author__ = "Abhishek Pathak"
 
 __all__ = [
