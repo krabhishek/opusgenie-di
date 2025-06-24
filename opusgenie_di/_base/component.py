@@ -23,7 +23,7 @@ class BaseComponent(BaseModel, ABC):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         validate_assignment=False,
-        use_enum_values=True,
+        use_enum_values=False,
         extra="allow",  # Allow extra fields for dependency injection
         validate_default=True,
     )
@@ -167,7 +167,7 @@ class BaseComponent(BaseModel, ABC):
 
     def is_error(self) -> bool:
         """Check if the component is in an error state."""
-        return self.lifecycle_stage == LifecycleStage.ERROR
+        return bool(self.lifecycle_stage == LifecycleStage.ERROR)
 
     def get_age_seconds(self) -> float:
         """Get the age of the component in seconds."""
