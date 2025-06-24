@@ -1,49 +1,59 @@
 # Welcome to OpusGenie DI
 
-<div style="float: right; font-size: 4rem; margin: 0 0 1rem 1rem;">🐷💰</div>
-
-**Building Modern Banking Architecture with Dependency Injection**
+**A Powerful Multi-Context Dependency Injection Framework for Python**
 
 ---
 
-## The OgPgy Bank Story
-
-In the tropical island nation of Genai, **OgPgy Bank** serves 2.3 million customers as the country's leading digital-first financial institution. What makes OgPgy Bank special isn't just their innovative services—it's how they've architected their technology stack using **OpusGenie DI**, a powerful dependency injection framework that enables them to build scalable, maintainable, and testable banking systems.
-
-!!! info "Meet the OgPgy Bank Team"
-    
-    **Elena Korvas** - *Chief Technology Officer*  
-    Leading OgPgy's digital transformation with microservices and domain-driven design
-    
-    **Marcus Chen** - *Business Domain Expert*  
-    Models complex banking domains like account management and regulatory compliance
-    
-    **Priya Nakamura** - *Lead Software Architect*  
-    Designs multi-context architectures that scale across banking operations
-    
-    **Sofia Ramos** - *Product Manager*  
-    Ensures customer experience drives technical decisions
-    
-    **Jake Morrison** - *DevOps Engineer*  
-    Maintains cloud-native applications that process millions of transactions daily
-
 ## What is OpusGenie DI?
 
-OpusGenie DI is a **multi-context dependency injection framework** for Python 3.12+ that brings Angular-style dependency injection to the Python ecosystem. It's designed for building complex, enterprise-grade applications with clear separation of concerns.
+OpusGenie DI is a **multi-context dependency injection framework** for Python 3.12+ that brings Angular-style dependency injection to the Python ecosystem. It's designed for building complex, enterprise-grade applications with clear separation of concerns, automatic dependency resolution, and comprehensive lifecycle management.
+
+Whether you're building microservices, modular monoliths, or complex domain-driven applications, OpusGenie DI provides the foundation for clean, maintainable, and scalable Python architectures.
+
+## Understanding Through Example: The OgPgy Bank Case Study
+
+<div style="float: right; font-size: 4rem; margin: 0 0 1rem 1rem;">🐷💰</div>
+
+To demonstrate how OpusGenie DI solves real-world architectural challenges, we'll use the example of **OgPgy Bank** throughout this documentation. OgPgy Bank is a fictional digital-first financial institution serving 2.3 million customers in the tropical island nation of Genai.
+
+By exploring how a modern banking system would use OpusGenie DI, we'll illustrate key concepts like:
+- **Bounded contexts** and domain separation
+- **Cross-context dependencies** and component sharing
+- **Lifecycle management** for critical services
+- **Testing strategies** for financial systems
+- **Scalable architecture** patterns
+
+!!! info "Why Use a Banking Example?"
+    Banking systems are perfect for demonstrating dependency injection because they require:
+    - **Clear domain boundaries** (accounts, payments, compliance)
+    - **Strict isolation** between contexts for security
+    - **Shared components** across different services
+    - **Complex lifecycle management** for critical resources
+    - **Comprehensive testing** for financial accuracy
+    
+    Throughout this documentation, we'll reference the OgPgy Bank team:
+    - **Elena Korvas** (CTO) - Architecting with OpusGenie DI
+    - **Marcus Chen** (Domain Expert) - Modeling bounded contexts
+    - **Priya Nakamura** (Lead Architect) - Implementing multi-context patterns
+    - **Sofia Ramos** (Product Manager) - Driving requirements
+    - **Jake Morrison** (DevOps) - Deploying OpusGenie DI applications
+
+## Core Features of OpusGenie DI
 
 ```mermaid
 graph LR
-    A[Traditional Monolith] --> B[Multi-Context Architecture]
-    B --> C[Scalable Banking Platform]
+    A[Traditional Monolith] --> B[OpusGenie DI Multi-Context] --> C[Scalable Applications]
+    
+    style B fill:#e1f5fe,stroke:#01579b,stroke-width:2px
 ```
 
-### Key Features
+### 🏗️ Multi-Context Architecture
 
-**🏗️ Multi-Context Architecture**
+OpusGenie DI's most powerful feature is its support for multiple isolated contexts that can selectively share components. Here's how it would organize a banking system:
 
 ```mermaid
 graph TB
-    subgraph "OgPgy Bank System"
+    subgraph "Banking System Example"
         subgraph "Account Context"
             AS[Account Service]
             AR[Account Repository]
@@ -66,7 +76,11 @@ graph TB
     end
 ```
 
-*Isolated contexts that can import and export components across domain boundaries.*
+Each context in OpusGenie DI:
+- **Isolates** its internal components
+- **Exports** specific components for other contexts to use
+- **Imports** components it needs from other contexts
+- **Maintains** its own lifecycle and scope
 
 === "⚡ Declarative Components"
 
@@ -119,13 +133,13 @@ graph TB
     
     Full type safety with Python protocols and type hints.
 
-## Why OgPgy Bank Chose OpusGenie DI
+## How OpusGenie DI Solves Architectural Challenges
 
-### The Challenge
+### The Common Challenge
 
-Elena Korvas faced a common problem in financial technology: **How do you build a banking system that's both secure and agile?** Traditional monolithic approaches were too rigid, but microservices without proper dependency management led to coupling nightmares.
+Many teams face the same problem Elena Korvas encountered at OgPgy Bank: **How do you build a system that's both secure and agile?** Traditional monolithic approaches are too rigid, while microservices without proper dependency management lead to coupling nightmares.
 
-### The Solution
+### The OpusGenie DI Solution
 
 ```mermaid
 flowchart LR
@@ -160,37 +174,57 @@ flowchart LR
     end
 ```
 
-OpusGenie DI enabled OgPgy Bank to:
+OpusGenie DI provides:
 
-- **Isolate business domains** in separate contexts
-- **Share components** across contexts when needed
-- **Test each domain** independently
-- **Scale teams** around business capabilities
-- **Deploy services** independently
+- **Domain Isolation**: Separate contexts for different business domains
+- **Selective Sharing**: Export/import only the components you need
+- **Independent Testing**: Test each context in isolation
+- **Team Scalability**: Teams can work on separate contexts without conflicts
+- **Flexible Deployment**: Deploy contexts as microservices or modules
 
-## Real-World Impact
+In the OgPgy Bank example, this translates to:
 
-!!! success "OgPgy Bank Results"
+## Real-World Benefits of OpusGenie DI
+
+!!! success "What OpusGenie DI Enables"
     
-    - **99.99% uptime** for core banking operations
-    - **Sub-second response times** for 95% of API calls
-    - **Zero data breaches** since implementing proper context isolation
-    - **50% faster development** cycles with independent team deployments
-    - **Regulatory compliance** maintained across all contexts
+    Using OgPgy Bank as an example, OpusGenie DI can help achieve:
+    
+    - **High Availability**: Isolated contexts prevent cascading failures
+    - **Performance**: Efficient dependency resolution and caching
+    - **Security**: Context boundaries enforce access control
+    - **Developer Productivity**: Clear interfaces and automatic wiring
+    - **Compliance**: Auditable component interactions
 
-## Customer Stories
+## Practical Applications
 
-### Maria Santos - Freelance Graphic Designer
+### Example: Payment Processing
 
-*"I need my banking to be as creative and flexible as my work. OgPgy's instant mobile transfers let me get paid by clients and pay suppliers without missing a beat."*
+Consider Maria Santos, a freelance designer who needs instant payment transfers. With OpusGenie DI:
 
-**How OpusGenie DI helps:** The payment processing context handles real-time transfers while maintaining strict isolation from account management, ensuring security without sacrificing speed.
+- The **Payment Context** handles transaction logic
+- It **imports** account verification from the Account Context
+- It **exports** transaction records to the Reporting Context
+- Each context maintains its own security boundaries
 
-### David Kim - Small Business Owner
+```python
+@og_context(
+    name="payment_context",
+    imports=[ModuleContextImport(AccountService, from_context="account_context")],
+    exports=[TransactionService],
+    providers=[PaymentProcessor, TransactionService]
+)
+class PaymentModule:
+    pass
+```
 
-*"Running a restaurant chain means dealing with complex financial flows. OgPgy's SME lending platform understood my business from day one."*
+### Example: Business Lending
 
-**How OpusGenie DI helps:** The loan processing context imports customer data from the account context while maintaining independent business logic for credit decisions.
+For David Kim's restaurant chain loan application, OpusGenie DI enables:
+
+- The **Lending Context** to import customer data from Account Context
+- Independent credit scoring logic without coupling
+- Clean interfaces between business domains
 
 ## Getting Started
 

@@ -300,6 +300,7 @@ class Context(ContextInterface):
         self,
         interface: type[TInterface],
         implementation: type[TInterface] | None = None,
+        factory: Any | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -317,7 +318,7 @@ class Context(ContextInterface):
         scope = kwargs.get("scope", ComponentScope.SINGLETON)
         name = kwargs.get("name")
         tags = kwargs.get("tags")
-        factory = kwargs.get("factory")
+        factory = factory or kwargs.get("factory")
 
         try:
             with self._lock:

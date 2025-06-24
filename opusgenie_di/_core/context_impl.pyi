@@ -65,6 +65,7 @@ class Context(ContextInterface):
         scope: ComponentScope = ...,
         name: str | None = None,
         tags: dict[str, Any] | None = None,
+        factory: Any | None = None,
     ) -> None: ...
     def resolve(
         self, interface: type[TInterface], name: str | None = None

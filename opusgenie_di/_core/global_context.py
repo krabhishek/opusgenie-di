@@ -146,6 +146,7 @@ def register_global_component(
     scope: ComponentScope = ComponentScope.SINGLETON,
     name: str | None = None,
     tags: dict[str, Any] | None = None,
+    factory: Any = None,
 ) -> None:
     """
     Register a component in the global context.
@@ -156,6 +157,7 @@ def register_global_component(
         scope: Component lifecycle scope
         name: Optional component name
         tags: Optional component tags
+        factory: Optional factory function for component instantiation
     """
     context = get_global_context()
     context.register_component(
@@ -164,6 +166,7 @@ def register_global_component(
         scope=scope,
         name=name,
         tags=tags,
+        factory=factory,
     )
 
     logger.debug(

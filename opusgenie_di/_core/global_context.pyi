@@ -24,6 +24,7 @@ def register_global_component(
     scope: ComponentScope = ...,
     name: str | None = None,
     tags: dict[str, Any] | None = None,
+    factory: Any = None,
 ) -> None: ...
 def resolve_global_component[TInterface](
     interface: type[TInterface], name: str | None = None
