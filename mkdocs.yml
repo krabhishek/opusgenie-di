@@ -12,7 +12,6 @@ copyright: Copyright &copy; 2024 Abhishek Pathak
 theme:
   name: material
   language: en
-  custom_dir: docs/overrides
   features:
     - navigation.tabs
     - navigation.tabs.sticky
