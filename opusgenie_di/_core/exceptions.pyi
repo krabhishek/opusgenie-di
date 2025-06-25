@@ -1,158 +1,85 @@
+from _typeshed import Incomplete
 from typing import Any
 
 class DIError(Exception):
-    message: str
-    details: str | None
-    context_name: str | None
-    operation: str | None
+    """
+    Base exception for all dependency injection related errors.
 
-    def __init__(
-        self,
-        message: str,
-        details: str | None = None,
-        context_name: str | None = None,
-        operation: str | None = None,
-    ) -> None: ...
+    This serves as the root exception for all DI specific errors,
+    providing a common base for exception handling and error categorization.
+    """
+    message: Incomplete
+    details: Incomplete
+    context_name: Incomplete
+    operation: Incomplete
+    def __init__(self, message: str, details: str | None = None, context_name: str | None = None, operation: str | None = None) -> None: ...
+    def __str__(self) -> str: ...
 
 class ContainerError(DIError):
-    container_name: str | None
+    """Base exception for container-related errors."""
+    container_name: Incomplete
+    def __init__(self, message: str, container_name: str | None = None, details: str | None = None, context_name: str | None = None, operation: str | None = None) -> None: ...
 
-    def __init__(
-        self,
-        message: str,
-        container_name: str | None = None,
-        details: str | None = None,
-        context_name: str | None = None,
-        operation: str | None = None,
-    ) -> None: ...
-
-class ContextError(DIError): ...
+class ContextError(DIError):
+    """Base exception for context-related errors."""
 
 class ComponentRegistrationError(ContextError):
-    component_type: str | None
-    interface_type: str | None
-
-    def __init__(
-        self,
-        message: str,
-        component_type: str | None = None,
-        interface_type: str | None = None,
-        details: str | None = None,
-        context_name: str | None = None,
-    ) -> None: ...
+    """Exception for component registration errors."""
+    component_type: Incomplete
+    interface_type: Incomplete
+    def __init__(self, message: str, component_type: str | None = None, interface_type: str | None = None, details: str | None = None, context_name: str | None = None) -> None: ...
 
 class ComponentResolutionError(ContextError):
-    component_type: str | None
-    resolution_chain: list[str]
-
-    def __init__(
-        self,
-        message: str,
-        component_type: str | None = None,
-        details: str | None = None,
-        context_name: str | None = None,
-        resolution_chain: list[str] | None = None,
-    ) -> None: ...
+    """Exception for component resolution errors."""
+    component_type: Incomplete
+    resolution_chain: Incomplete
+    def __init__(self, message: str, component_type: str | None = None, details: str | None = None, context_name: str | None = None, resolution_chain: list[str] | None = None) -> None: ...
 
 class CircularDependencyError(ComponentResolutionError):
-    dependency_chain: list[str]
-
-    def __init__(
-        self,
-        message: str,
-        dependency_chain: list[str] | None = None,
-        context_name: str | None = None,
-    ) -> None: ...
+    """Exception for circular dependency detection."""
+    dependency_chain: Incomplete
+    def __init__(self, message: str, dependency_chain: list[str] | None = None, context_name: str | None = None) -> None: ...
 
 class ScopeError(DIError):
-    scope: str | None
-    component_type: str | None
-
-    def __init__(
-        self,
-        message: str,
-        scope: str | None = None,
-        component_type: str | None = None,
-        details: str | None = None,
-        context_name: str | None = None,
-    ) -> None: ...
+    """Exception for component scope management errors."""
+    scope: Incomplete
+    component_type: Incomplete
+    def __init__(self, message: str, scope: str | None = None, component_type: str | None = None, details: str | None = None, context_name: str | None = None) -> None: ...
 
 class ProviderError(ContainerError):
-    provider_name: str | None
-    component_type: str | None
-
-    def __init__(
-        self,
-        message: str,
-        provider_name: str | None = None,
-        component_type: str | None = None,
-        details: str | None = None,
-        context_name: str | None = None,
-    ) -> None: ...
+    """Exception for provider-related errors."""
+    provider_name: Incomplete
+    component_type: Incomplete
+    def __init__(self, message: str, provider_name: str | None = None, component_type: str | None = None, details: str | None = None, context_name: str | None = None) -> None: ...
 
 class ImportError(DIError):
-    component_type: str | None
-    source_context: str | None
-    target_context: str | None
-
-    def __init__(
-        self,
-        message: str,
-        component_type: str | None = None,
-        source_context: str | None = None,
-        target_context: str | None = None,
-        details: str | None = None,
-    ) -> None: ...
+    """Exception for cross-context import errors."""
+    component_type: Incomplete
+    source_context: Incomplete
+    target_context: Incomplete
+    def __init__(self, message: str, component_type: str | None = None, source_context: str | None = None, target_context: str | None = None, details: str | None = None) -> None: ...
 
 class ModuleError(DIError):
-    module_name: str | None
-
-    def __init__(
-        self,
-        message: str,
-        module_name: str | None = None,
-        details: str | None = None,
-        context_name: str | None = None,
-    ) -> None: ...
+    """Exception for module-related errors."""
+    module_name: Incomplete
+    def __init__(self, message: str, module_name: str | None = None, details: str | None = None, context_name: str | None = None) -> None: ...
 
 class LifecycleError(DIError):
-    component_type: str | None
-    lifecycle_stage: str | None
-
-    def __init__(
-        self,
-        message: str,
-        component_type: str | None = None,
-        lifecycle_stage: str | None = None,
-        details: str | None = None,
-        context_name: str | None = None,
-    ) -> None: ...
+    """Exception for component lifecycle management errors."""
+    component_type: Incomplete
+    lifecycle_stage: Incomplete
+    def __init__(self, message: str, component_type: str | None = None, lifecycle_stage: str | None = None, details: str | None = None, context_name: str | None = None) -> None: ...
 
 class ValidationError(DIError):
-    validation_rule: str | None
-
-    def __init__(
-        self,
-        message: str,
-        validation_rule: str | None = None,
-        details: str | None = None,
-        context_name: str | None = None,
-    ) -> None: ...
+    """Exception for validation errors in the DI system."""
+    validation_rule: Incomplete
+    def __init__(self, message: str, validation_rule: str | None = None, details: str | None = None, context_name: str | None = None) -> None: ...
 
 class ConfigurationError(DIError):
-    config_key: str | None
-    config_value: Any
-
-    def __init__(
-        self,
-        message: str,
-        config_key: str | None = None,
-        config_value: Any = None,
-        details: str | None = None,
-        context_name: str | None = None,
-    ) -> None: ...
-
-# Convenience aliases for common exceptions
+    """Exception for configuration-related errors."""
+    config_key: Incomplete
+    config_value: Incomplete
+    def __init__(self, message: str, config_key: str | None = None, config_value: Any = None, details: str | None = None, context_name: str | None = None) -> None: ...
 ContainerInitializationError = ContainerError
 ContextCreationError = ContextError
 DependencyResolutionError = ComponentResolutionError

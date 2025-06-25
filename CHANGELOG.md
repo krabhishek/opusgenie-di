@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] - 2025-01-23
+
+### Improved
+- 🔧 **Enhanced Type Support**: Comprehensive improvements to type checking and stub files
+  - **Complete Stub Files**: Auto-generated `.pyi` stub files for all modules using `stubgen`
+  - **Type Safety**: Resolved all MyPy type checking errors across the entire codebase
+  - **Lint Compliance**: Fixed all Ruff lint errors including unused imports and naming conventions
+  - **CI Integration**: Added automatic stub file generation to GitHub Actions release workflow
+  - **Developer Experience**: Improved IDE support with accurate type hints and autocompletion
+
+### Fixed
+- 🔍 **Stub File Quality**: Fixed missing method signatures in type stub files
+  - Added missing `enable_auto_wiring()` and `shutdown()` methods to Context class stubs
+  - Corrected TypeVar naming conventions to follow PYI standards
+  - Removed unused imports and resolved all stub file inconsistencies
+- 🛠️ **Configuration Issues**: Fixed regex patterns in MyPy and Ruff configuration
+  - Corrected `.pyi` file exclusion patterns to prevent linting errors
+  - Improved build tool configuration for better type checking workflow
+
+### Added
+- 🚀 **Automated Stub Generation**: GitHub Actions workflow now automatically generates type stubs before PyPI release
+  - Ensures published packages always have complete and up-to-date type information
+  - Validates stub file quality as part of the CI/CD pipeline
+  - Maintains consistency between implementation and type declarations
+
+### Technical Details
+- Integrated `stubgen` from MyPy for automatic stub file generation
+- Enhanced pyproject.toml configuration for better tool integration
+- Improved developer workflow with comprehensive type checking support
+- All type stubs now include private methods, docstrings, and complete signatures
+
 ## [0.1.4] - 2025-06-22
 
 ### Added

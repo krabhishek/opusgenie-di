@@ -25,6 +25,7 @@ from uuid import uuid4
 from opusgenie_di import (
     BaseComponent,
     ComponentScope,
+    Context,
     ContextModuleBuilder,
     EventHook,
     LifecycleHook,
@@ -35,6 +36,7 @@ from opusgenie_di import (
     register_lifecycle_hook,
     reset_global_state,
 )
+from opusgenie_di._testing.fixtures import create_test_context
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -687,8 +689,6 @@ async def demonstrate_circular_dependency() -> None:
     print("=" * 50)
 
     try:
-        from opusgenie_di import Context
-
         context = Context("circular_demo")
         context.register_component(CircularServiceA, scope=ComponentScope.SINGLETON)
         context.register_component(CircularServiceB, scope=ComponentScope.SINGLETON)
@@ -714,8 +714,6 @@ async def demonstrate_testing_utilities() -> None:
     """Demonstrate testing utilities."""
     print("\n🧪 Demonstrating Testing Utilities:")
     print("=" * 40)
-
-    from opusgenie_di import create_test_context
 
     # Create isolated test context
     test_context = create_test_context()

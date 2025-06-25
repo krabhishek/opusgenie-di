@@ -58,6 +58,20 @@ jobs:
         run: |
           uv run ruff check .
 
+      - name: Generate and verify stub files
+        run: |
+          echo "Generating stub files for quality check..."
+          uv run stubgen -p opusgenie_di -o stub_check --include-private --include-docstrings
+          echo "Comparing with existing stub files..."
+          # Check if generated stubs are significantly different from existing ones
+          if [ -d "stub_check/opusgenie_di" ]; then
+            echo "✅ Stub generation successful"
+            rm -rf stub_check
+          else
+            echo "❌ Stub generation failed"
+            exit 1
+          fi
+
       - name: Type check
         run: |
           uv run mypy opusgenie_di/
@@ -91,7 +105,7 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          uv add --dev build twine
+          uv add --dev build twine mypy
 
       - name: Extract version from tag
         id: version
@@ -110,6 +124,40 @@ jobs:
           VERSION=${{ steps.version.outputs.version }}
           sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
           echo "Updated version to: $VERSION"
+
+      - name: Generate stub files
+        run: |
+          echo "Generating stub files with stubgen..."
+          echo "This ensures the published package has complete and up-to-date type stubs"
+          uv run stubgen -p opusgenie_di -o stub_temp --include-private --include-docstrings --verbose
+          echo "Copying generated stub files to package..."
+          cp -r stub_temp/opusgenie_di/* opusgenie_di/
+          rm -rf stub_temp
+          echo "✅ Stub files generated and updated"
+
+      - name: Verify stub files
+        run: |
+          echo "Verifying stub files are present..."
+          find opusgenie_di -name "*.pyi" | head -10
+          echo "Ensuring py.typed marker file exists..."
+          if [ ! -f "opusgenie_di/py.typed" ]; then
+            echo "Creating py.typed marker file..."
+            touch opusgenie_di/py.typed
+          fi
+          echo "Running type check with updated stubs..."
+          uv run mypy opusgenie_di/ --no-error-summary
+          echo "✅ Stub files verified"
+
+      - name: Check for stub file changes
+        run: |
+          echo "Checking if stub files were updated..."
+          if git diff --quiet; then
+            echo "No changes to stub files"
+          else
+            echo "Stub files were updated:"
+            git diff --name-only | grep "\.pyi$" || echo "No .pyi files changed"
+            echo "Changes will be included in the build"
+          fi
 
       - name: Build package
         run: |

@@ -1,40 +1,57 @@
 from enum import Enum
 
 class ComponentScope(Enum):
-    SINGLETON = "SINGLETON"
-    TRANSIENT = "TRANSIENT"
-    SCOPED = "SCOPED"
-    FACTORY = "FACTORY"
-    CONDITIONAL = "CONDITIONAL"
+    """
+    Enumeration of component lifecycle scopes.
+
+    Defines how component instances are managed throughout their lifecycle.
+    """
+    SINGLETON = 'singleton'
+    TRANSIENT = 'transient'
+    SCOPED = 'scoped'
+    FACTORY = 'factory'
+    CONDITIONAL = 'conditional'
 
 class ComponentLayer(Enum):
-    INFRASTRUCTURE = "INFRASTRUCTURE"
-    APPLICATION = "APPLICATION"
-    DOMAIN = "DOMAIN"
-    FRAMEWORK = "FRAMEWORK"
-    PRESENTATION = "PRESENTATION"
+    """
+    Enumeration of architectural layers for component organization.
+
+    Helps organize components by their architectural responsibilities.
+    """
+    INFRASTRUCTURE = 'infrastructure'
+    APPLICATION = 'application'
+    DOMAIN = 'domain'
+    FRAMEWORK = 'framework'
+    PRESENTATION = 'presentation'
 
 class RegistrationStrategy(Enum):
-    AUTO = "AUTO"
-    MANUAL = "MANUAL"
-    LAZY = "LAZY"
+    """
+    Enumeration of component registration strategies.
+
+    Defines how components are registered and created.
+    """
+    AUTO = 'auto'
+    MANUAL = 'manual'
+    LAZY = 'lazy'
 
 class LifecycleStage(Enum):
-    # Core lifecycle stages
-    CREATED = "CREATED"
-    INITIALIZING = "INITIALIZING"
-    INITIALIZED = "INITIALIZED"
-    ACTIVE = "ACTIVE"
-    STOPPING = "STOPPING"
-    STOPPED = "STOPPED"
-    DISPOSING = "DISPOSING"
-    DISPOSED = "DISPOSED"
-    ERROR = "ERROR"
+    """
+    Enumeration of component lifecycle stages.
 
-    # Extended lifecycle stages
-    PRE_INITIALIZATION = "PRE_INITIALIZATION"
-    POST_INITIALIZATION = "POST_INITIALIZATION"
-    STARTUP = "STARTUP"
-    RUNNING = "RUNNING"
-    SHUTDOWN = "SHUTDOWN"
-    POST_SHUTDOWN = "POST_SHUTDOWN"
+    Tracks the current state of a component through its lifecycle.
+    """
+    CREATED = 'created'
+    INITIALIZING = 'initializing'
+    INITIALIZED = 'initialized'
+    ACTIVE = 'active'
+    STOPPING = 'stopping'
+    STOPPED = 'stopped'
+    DISPOSING = 'disposing'
+    DISPOSED = 'disposed'
+    ERROR = 'error'
+    PRE_INITIALIZATION = 'pre_initialization'
+    POST_INITIALIZATION = 'post_initialization'
+    STARTUP = 'startup'
+    RUNNING = 'running'
+    SHUTDOWN = 'shutdown'
+    POST_SHUTDOWN = 'post_shutdown'

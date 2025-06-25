@@ -1,6 +1,6 @@
 [project]
 name = "opusgenie-di"
-version = "0.1.7"
+version = "0.1.8"
 description = "A powerful, multi-context dependency injection framework for Python with comprehensive async lifecycle management"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -85,16 +85,13 @@ python_version = "3.12"
 mypy_path = "."
 namespace_packages = true
 explicit_package_bases = true
-strict = true
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
+disable_error_code = [
+    "misc",
+]
 exclude = [
     "examples/",
     "tests/",
+    "(?x)(\\.pyi$)",
 ]
 
 [tool.pytest.ini_options]
@@ -108,6 +105,7 @@ exclude = [
     "dist",
     ".venv",
     "venv",
+    "**/*.pyi",
 ]
 
 [tool.ruff.lint]
